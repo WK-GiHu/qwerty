@@ -80,5 +80,7 @@ class VKeyboard(tk.Toplevel):
 
 if __name__ == '__main__':
     root = tk.Tk()
-    main = VKeyboard(root)
+    entry = tk.Entry(root)
+    entry.grid()
+    VKeyboard.entry(root, entry)
     root.mainloop()
