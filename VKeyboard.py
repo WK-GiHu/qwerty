@@ -3,18 +3,15 @@ class VKeyboard(tk.Toplevel):
     INSTANCE = None
     def __init__(self):
      # here goes the settings for the Toplevel
+        super().__init__(parent)
+        window = tk.Toplevel(root)
+        window.configure(background="cornflowerblue")
+        window.wm_attributes("-alpha", 0.7)
+        self.create()
+        self.uppercase = False
+        self.entry = None
 
-        alphabets = [
-            ['`','1','2','3','4','5','6','7','8','9','0','-','=','Backspace'],
-            ['Tab','q','w','e','r','t','y','u','i','o','p','[',']',"\\"],
-            ['Caps Lock','a','s','d','f','g','h','j','k','l',';',"'",'Enter'],
-            ['Shift','z','x','c','v','b','n','m',',','.','/','Shift'],
-            ['Space']
-        ]    
-
-        uppercase = False  # use uppercase chars. 
-
-    def select(entry, value):
+    def select(self, entry, value):
         global uppercase
 
         if value == "Space":
@@ -37,11 +34,15 @@ class VKeyboard(tk.Toplevel):
                 value = value.upper()
             entry.insert('end', value)
 
-    def create(root, entry):
+    def create(self, root, entry):
+        alphabets = [
+            ['`','1','2','3','4','5','6','7','8','9','0','-','=','Backspace'],
+            ['Tab','q','w','e','r','t','y','u','i','o','p','[',']',"\\"],
+            ['Caps Lock','a','s','d','f','g','h','j','k','l',';',"'",'Enter'],
+            ['Shift','z','x','c','v','b','n','m',',','.','/','Shift'],
+            ['Space']
+        ]    
 
-        window = tk.Toplevel(root)
-        window.configure(background="cornflowerblue")
-        window.wm_attributes("-alpha", 0.7)
 
         for y, row in enumerate(alphabets):
 
@@ -61,7 +62,7 @@ class VKeyboard(tk.Toplevel):
                     columnspan = 1
 
                 tk.Button(window, text=text, width=width, 
-                          command=lambda value=text: select(entry, value),
+                          command=lambda value=text: self.select(entry, value),
                           padx=3, pady=3, bd=12, bg="black", fg="white"
                          ).grid(row=y, column=x, columnspan=columnspan)
 
