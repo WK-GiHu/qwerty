@@ -72,7 +72,9 @@ class VKeyboard(tk.Toplevel):
             cls.INSTANCE = cls(master)
         else:
             cls.INSTANCE.deiconify()
-            cls.INSTANCE.entry = entry
+
+        cls.INSTANCE.entry = entry
+
     @classmethod
     def withdraw(cls):
         if cls.INSTANCE is not None:
