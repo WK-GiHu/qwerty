@@ -78,3 +78,8 @@ class VKeyboard(tk.Toplevel):
     def withdraw(cls):
         if cls.INSTANCE is not None:
             tk.Toplevel.withdraw(cls.INSTANCE)
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    main = VKeyboard(root)
+    root.mainloop()
