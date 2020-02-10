@@ -1,12 +1,11 @@
 import tkinter as tk
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
-    def __init__(self):
+    def __init__(self, parent):
      # here goes the settings for the Toplevel
         super().__init__(parent)
-        window = tk.Toplevel(root)
-        window.configure(background="cornflowerblue")
-        window.wm_attributes("-alpha", 0.7)
+        self.configure(background="cornflowerblue")
+        self.wm_attributes("-alpha", 0.7)
         self.create()
         self.uppercase = False
         self.entry = None
