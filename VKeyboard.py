@@ -1,7 +1,7 @@
 import tkinter as tk
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
-    def __init__(self):
+    def __init__(self, parent):
      # here goes the settings for the Toplevel
         super().__init__(parent)
         self.configure(background="cornflowerblue")
