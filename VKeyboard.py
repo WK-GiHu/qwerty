@@ -10,7 +10,7 @@ class VKeyboard(tk.Toplevel):
         self.uppercase = False
         self.entry = None
 
-    def select(self, entry, value):
+    def select(self, value):
 
         if value == "Space":
             value = ' '
@@ -32,7 +32,7 @@ class VKeyboard(tk.Toplevel):
                 value = value.upper()
             self.entry.insert('end', value)
 
-    def create(self, root, entry):
+    def create(self):
         alphabets = [
             ['`','1','2','3','4','5','6','7','8','9','0','-','=','Backspace'],
             ['Tab','q','w','e','r','t','y','u','i','o','p','[',']',"\\"],
