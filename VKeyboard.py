@@ -11,7 +11,6 @@ class VKeyboard(tk.Toplevel):
         self.entry = None
 
     def select(self, entry, value):
-        global uppercase
 
         if value == "Space":
             value = ' '
@@ -21,17 +20,17 @@ class VKeyboard(tk.Toplevel):
             value = '\t'
 
         if value == "Backspace":
-            if isinstance(entry, tk.Entry):
-                entry.delete(len(entry.get())-1, 'end')
+            if isinstance(self.entry, tk.Entry):
+                self.entry.delete(len(self.entry.get())-1, 'end')
             #elif isinstance(entry, tk.Text):
             else: # tk.Text
-                entry.delete('end - 2c', 'end')
+                self.entry.delete('end - 2c', 'end')
         elif value in ('Caps Lock', 'Shift'):
-            uppercase = not uppercase # change True to False, or False to True
+            self.uppercase = not self.uppercase # change True to False, or False to True
         else:
-            if uppercase:
+            if self.uppercase:
                 value = value.upper()
-            entry.insert('end', value)
+            self.entry.insert('end', value)
 
     def create(self, root, entry):
         alphabets = [
@@ -61,7 +60,7 @@ class VKeyboard(tk.Toplevel):
                     columnspan = 1
 
                 tk.Button(window, text=text, width=width, 
-                          command=lambda value=text: self.select(entry, value),
+                          command=lambda value=text: self.select(self.entry, value),
                           padx=3, pady=3, bd=12, bg="black", fg="white"
                          ).grid(row=y, column=x, columnspan=columnspan)
 
