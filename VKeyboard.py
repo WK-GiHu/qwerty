@@ -59,8 +59,8 @@ class VKeyboard(tk.Toplevel):
                     width = 5
                     columnspan = 1
 
-                tk.Button(window, text=text, width=width, 
-                          command=lambda value=text: self.select(self.entry, value),
+                tk.Button(self, text=text, width=width, 
+                          command=lambda value=text: self.select(value),
                           padx=3, pady=3, bd=12, bg="black", fg="white"
                          ).grid(row=y, column=x, columnspan=columnspan)
 
