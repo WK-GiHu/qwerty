@@ -2,7 +2,6 @@ import tkinter as tk
 
 
 class VKeyboard(tk.Toplevel):
-    INSTANCE = None
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -29,7 +28,6 @@ class VKeyboard(tk.Toplevel):
         # Don't process the own Button
         if w.master is not self:
             w_class_name = w.winfo_class()
-            print('on_focus_in:{}'.format((w_class_name, self.state())))
             
             if w_class_name in ('Entry',):
                 if self.state() == 'withdrawn':
