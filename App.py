@@ -12,11 +12,10 @@ class LabelEntry(tk.Frame):
         tk.Label(self, text='{}\t:'.format(text), relief="ridge", bg="white").grid(row=0, column=0, padx=5, pady=pady)
         self.entry = tk.Entry(self, textvariable=self.variable, bg="white", width="45")
         self.entry.grid(row=0, column=1, pady=pady)
-
-
 class Form1(tk.Frame):
     def __init__(self, parent, fields, **kwargs):
         super().__init__(parent, **kwargs)
+
 
         self.fields = dict.fromkeys(fields, None)
 
