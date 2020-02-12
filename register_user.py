@@ -8,7 +8,6 @@ class Registration_User(Toplevel):
     def __init__(self):
         super().__init__()
         self.title("Thesis")
-        VKeyboard(self)
         
         self.main_frame = Frame(self)
         self.main_frame.pack(fill = BOTH, expand = 1)
