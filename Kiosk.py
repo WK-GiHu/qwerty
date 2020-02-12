@@ -12,7 +12,8 @@ import register_user
 class Kiosk(Tk):
     def __init__(self):
         super().__init__()
-
+        VKeyboard(self)
+        
         self.login_rfid_button = Button(self, text = "Login",width = 20,command = self.choose_user, bg= "white")
         self.login_rfid_button.pack(pady = 10)
         
