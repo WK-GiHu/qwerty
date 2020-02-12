@@ -10,10 +10,12 @@ class VKeyboard(tk.Toplevel):
         super().withdraw()
         
         self.configure(background="cornflowerblue")
+        #self.geometry("+420+820")
         self.geometry("+0+283")
         self.wm_attributes("-alpha", 0.7)
         self.wm_attributes("-type", 'toolwindow')
         self.wm_overrideredirect(boolean=True)
+        print(self.wm_geometry())
         
         self.create()
         self.uppercase = False
@@ -105,3 +107,4 @@ if __name__ == "__main__":
     ttk.Combobox(root, values=['one', 'two', 'three', 'four', 'five']).grid()
     VKeyboard(root)
     root.mainloop()
+
