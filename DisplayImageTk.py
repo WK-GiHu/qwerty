@@ -15,32 +15,33 @@ def insertBLOB(emp_id, name, photo):
 
     cursor = db.cursor()
     sql_insert_blob_query = """ INSERT INTO testing
-                      (ID, Name, Image) VALUES (%s,%s,%s)"""
+                      (Image) VALUES (%s,%s,%s)"""
 
     empPicture = convertToBinaryData(photo)
 
     # Convert data into tuple format
-    insert_blob_tuple = (emp_id, name, empPicture)
+    insert_blob_tuple = (empPicture)
     result = cursor.execute(sql_insert_blob_query, insert_blob_tuple)
     db.commit()
     print("Image and file inserted successfully as a BLOB into python_employee table", result)
 
    
-insertBLOB(1, "Justin", "saved_img-final.jpg")
+insertBLOB("saved_img-final.jpg")
 
 db = pymysql.connect(host='localhost',user='root', password='', db = 'test')
 cursor = db.cursor()
 
+root = tk.Tk()
+
 db.autocommit(True)
-cursor.execute("CREATE TABLE testing (Image MEDIUMBLOB)"
-image_query = "SELECT Image FROM testing"
-cursor.execute(image_query)
+meow = "SELECT Image FROM testing"
+cursor.execute(meow)
 
-image=cursor.fetchall()
-
-img = Image.open(io.BytesIO(image[0][0]))
+logo=cursor.fetchall()
+print (logo)
+img = Image.frombytes("RGB",(3,2),logo[0][0])
+img.show()
 phimg = ImageTk.PhotoImage(img)
 
-root = tk.Tk()
 panel = tk.Label(root, image = phimg)
 panel.grid(row=0,rowspan=5,columnspan=2)
