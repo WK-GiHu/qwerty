@@ -15,7 +15,7 @@ def insertBLOB(emp_id, name, photo):
 
     cursor = db.cursor()
     sql_insert_blob_query = """ INSERT INTO testing
-                      (Image) VALUES (%s,%s,%s)"""
+                      (Image) VALUES (%s)"""
 
     empPicture = convertToBinaryData(photo)
 
