@@ -9,37 +9,34 @@ def convertToBinaryData(filename):
         binaryData = file.read()
     return binaryData
 
-def insertBLOB(emp_id, name, photo):
+def insertBLOB(photo):
     print("Inserting BLOB into python_employee table")
     db = pymysql.connect(host='localhost',user='root', password='', db = 'test')
 
     cursor = db.cursor()
-    sql_insert_blob_query = """ INSERT INTO testing
+    sql_insert_blob_query = """INSERT INTO testing
                       (Image) VALUES (%s)"""
 
     empPicture = convertToBinaryData(photo)
 
     # Convert data into tuple format
     insert_blob_tuple = (empPicture)
-    result = cursor.execute(sql_insert_blob_query, insert_blob_tuple)
+    cursor.execute(sql_insert_blob_query, insert_blob_tuple)
     db.commit()
-    print("Image and file inserted successfully as a BLOB into python_employee table", result)
-
+    
    
-insertBLOB("saved_img-final.jpg")
+insertBLOB("saved_img.jpg")
 
 db = pymysql.connect(host='localhost',user='root', password='', db = 'test')
 cursor = db.cursor()
 
 root = tk.Tk()
-
 db.autocommit(True)
-meow = "SELECT Image FROM testing"
-cursor.execute(meow)
-
-logo=cursor.fetchall()
-print (logo)
-img = Image.frombytes("RGB",(3,2),logo[0][0])
+cursor.execute("SELECT Image FROM testing")
+Image=cursor.fetchall()
+byte_image = io.BytesIO(Image[0][0])
+print(byte_image)
+img = Image.open(byte_image)
 img.show()
 phimg = ImageTk.PhotoImage(img)
 
