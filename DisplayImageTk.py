@@ -7,11 +7,12 @@ db = pymysql.connect(host='localhost',user='root', password='', db = 'test')
 cursor = db.cursor()
 
 db.autocommit(True)
-cursor.execute("SELECT Image FROM testing")
+meow = "SELECT Image FROM testing"
+cursor.execute(meow)
 
-logo=cursor.fetchone()
+logo=cursor.fetchall()
 
-img = Image.open(io.BytesIO(logo))
+img = Image.open(io.BytesIO(logo[0][0]))
 phimg = ImageTk.PhotoImage(img)
 
 root = tk.Tk()
