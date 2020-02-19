@@ -7,6 +7,7 @@ db = pymysql.connect(host='localhost',user='root', password='', db = 'test')
 cursor = db.cursor()
 
 db.autocommit(True)
+cursor.execute("CREATE TABLE testing (Image MEDIUMBLOB)"
 image_query = "SELECT Image FROM testing"
 cursor.execute(image_query)
 
