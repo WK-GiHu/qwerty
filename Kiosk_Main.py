@@ -263,5 +263,5 @@ class Kiosk(tk.Tk):
     def on_grant_access(self, *event):
         print('Kiosk.on_grant_access()')
         
-        self.deiconify
+        self.deiconify()
             
