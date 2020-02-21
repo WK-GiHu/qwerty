@@ -25,6 +25,7 @@ class FingerprintThread(threading.Thread):
         except Exception as e:
             print('The fingerprint sensor could not be initialized!')
             print('Exception message: ' + str(e))
+        
         print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
         while True:
         
@@ -125,10 +126,12 @@ class RFIDThread(threading.Thread):
         self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
         self.cursor = self.db.cursor()
         self.db.autocommit(True)
+        self.reader = SimpleMFRC522()
         self.id, text = self.reader.read()
         while True:
-                
             self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
+            result = self.cursor.fetchone()
+            print(result)
             if (self.cursor.fetchone() is not None): 
                 self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE RFID = %s", str(self.id))
                 self.get_Firstn = self.cursor.fetchone()
@@ -248,7 +251,6 @@ class Kiosk(tk.Tk):
         
         FingerprintThread(self, callback = self.on_grant_access)
         RFIDThread(self, callback = self.on_grant_access)
-        
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
