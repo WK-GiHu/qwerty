@@ -21,92 +21,92 @@ class FingerprintThread(threading.Thread):
             print('The fingerprint sensor could not be initialized!')
             print('Exception message: ' + str(e))
         print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-            while True:
-            
-                print('Waiting for finger...')
+        while True:
+        
+            print('Waiting for finger...')
 
-                ## Wait that finger is read
-                while ( f.readImage() == False ):
-                    pass
+            ## Wait that finger is read
+            while ( f.readImage() == False ):
+                pass
 
-                    ## Converts read image to characteristics and stores it in charbuffer 1
-                f.convertImage(0x01)
+                ## Converts read image to characteristics and stores it in charbuffer 1
+            f.convertImage(0x01)
 
-                    ## Searchs template
-                result = f.searchTemplate()
+                ## Searchs template
+            result = f.searchTemplate()
 
-                positionNumber = result[0]
-                accuracyScore = result[1]
+            positionNumber = result[0]
+            accuracyScore = result[1]
 
-                self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-                result = self.cursor.fetchone()
-                print (result)
-                if self.cursor.fetchone() is not None:
-                    self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
+            result = self.cursor.fetchone()
+            print (result)
+            if self.cursor.fetchone() is not None:
+                self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Firstn = self.cursor.fetchone()
+                self.get_Firstn1 = str(self.get_Firstn[0])
+                self.cursor.execute("SELECT MIDDLE_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Middlen = self.cursor.fetchone()
+                self.get_Middlen1 = str(self.get_Middlen[0])
+                self.cursor.execute("SELECT LAST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Lastn = self.cursor.fetchone()
+                self.get_Lastn1 = str(self.get_Lastn[0])
+                self.cursor.execute("SELECT BIRTH_DATE FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Birthd = self.cursor.fetchone()
+                self.get_Birthd1 = str(self.get_Birthd[0])
+                self.dob = datetime.strptime(self.get_Birthd1, "%Y-%m-%d")
+                self.get_dob = self.calculate_age(self.dob)
+                self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Placeb = self.cursor.fetchone()
+                self.get_Placeb1 = str(self.get_Placeb[0])
+                self.cursor.execute("SELECT CIVIL_STATUS FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Civils = self.cursor.fetchone()
+                self.get_Civils1 = str(self.get_Civils[0])
+                self.cursor.execute("SELECT SEX FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Sex = self.cursor.fetchone()
+                self.get_Sex1 = str(self.get_Sex[0])
+                self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_dateOfResidency = self.cursor.fetchone()
+                self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
+                self.cursor.execute("SELECT ADDRESS FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                self.get_Address = self.cursor.fetchone()
+                self.get_Address = str(self.get_Address[0])
+                self.app.event_generate('<<GRANT_ACCESS>>', when='tail')
+            else:
+                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
+                if self.cursor.fetchone() is not None: 
+                    self.cursor.execute("SELECT FIRST_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Firstn = self.cursor.fetchone()
                     self.get_Firstn1 = str(self.get_Firstn[0])
-                    self.cursor.execute("SELECT MIDDLE_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT MIDDLE_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Middlen = self.cursor.fetchone()
                     self.get_Middlen1 = str(self.get_Middlen[0])
-                    self.cursor.execute("SELECT LAST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT LAST_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Lastn = self.cursor.fetchone()
                     self.get_Lastn1 = str(self.get_Lastn[0])
-                    self.cursor.execute("SELECT BIRTH_DATE FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT BIRTH_DATE FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Birthd = self.cursor.fetchone()
                     self.get_Birthd1 = str(self.get_Birthd[0])
                     self.dob = datetime.strptime(self.get_Birthd1, "%Y-%m-%d")
                     self.get_dob = self.calculate_age(self.dob)
-                    self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Placeb = self.cursor.fetchone()
                     self.get_Placeb1 = str(self.get_Placeb[0])
-                    self.cursor.execute("SELECT CIVIL_STATUS FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT CIVIL_STATUS FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Civils = self.cursor.fetchone()
                     self.get_Civils1 = str(self.get_Civils[0])
-                    self.cursor.execute("SELECT SEX FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT SEX FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Sex = self.cursor.fetchone()
                     self.get_Sex1 = str(self.get_Sex[0])
-                    self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_dateOfResidency = self.cursor.fetchone()
                     self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
-                    self.cursor.execute("SELECT ADDRESS FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+                    self.cursor.execute("SELECT ADDRESS FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Address = self.cursor.fetchone()
-                    self.get_Address = str(self.get_Address[0])
+                    self.get_Address = str(self.get_dateOfResidency[0])
                     self.app.event_generate('<<GRANT_ACCESS>>', when='tail')
                 else:
-                    self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                    if self.cursor.fetchone() is not None: 
-                        self.cursor.execute("SELECT FIRST_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Firstn = self.cursor.fetchone()
-                        self.get_Firstn1 = str(self.get_Firstn[0])
-                        self.cursor.execute("SELECT MIDDLE_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Middlen = self.cursor.fetchone()
-                        self.get_Middlen1 = str(self.get_Middlen[0])
-                        self.cursor.execute("SELECT LAST_NAME FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Lastn = self.cursor.fetchone()
-                        self.get_Lastn1 = str(self.get_Lastn[0])
-                        self.cursor.execute("SELECT BIRTH_DATE FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Birthd = self.cursor.fetchone()
-                        self.get_Birthd1 = str(self.get_Birthd[0])
-                        self.dob = datetime.strptime(self.get_Birthd1, "%Y-%m-%d")
-                        self.get_dob = self.calculate_age(self.dob)
-                        self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Placeb = self.cursor.fetchone()
-                        self.get_Placeb1 = str(self.get_Placeb[0])
-                        self.cursor.execute("SELECT CIVIL_STATUS FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Civils = self.cursor.fetchone()
-                        self.get_Civils1 = str(self.get_Civils[0])
-                        self.cursor.execute("SELECT SEX FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Sex = self.cursor.fetchone()
-                        self.get_Sex1 = str(self.get_Sex[0])
-                        self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_dateOfResidency = self.cursor.fetchone()
-                        self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
-                        self.cursor.execute("SELECT ADDRESS FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                        self.get_Address = self.cursor.fetchone()
-                        self.get_Address = str(self.get_dateOfResidency[0])
-                        self.app.event_generate('<<GRANT_ACCESS>>', when='tail')
-                    else:
-                        messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
+                    messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
 
            
@@ -152,3 +152,5 @@ class Kiosk(tk.Tk):
         print('Kiosk.on_grant_access()')
         
         self.deiconiy
+    
+        
