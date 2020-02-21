@@ -4,7 +4,7 @@ import threading
 from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
-from mfrc522 import SimpleMFRC522class FingerprintThread(threading.Thread):
+class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
         self.app = app
@@ -150,7 +150,7 @@ class Kiosk(tk.Tk):
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
-        self.on_grant_access()
+        
     def on_grant_access(self, *event):
         print('Kiosk.on_grant_access()')
         
