@@ -247,6 +247,7 @@ class Kiosk(tk.Tk):
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
         FingerprintThread(self, callback = self.on_grant_access)
+        RFIDThread(self, callback = self.on_grant_access)
         
         GPIO.setwarnings(False)
         self.configure(bg="white")    
