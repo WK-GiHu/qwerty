@@ -4,13 +4,16 @@ import threading
 from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
-from mfrc522 import SimpleMFRC522
-class FingerprintThread(threading.Thread):
+from mfrc522 import SimpleMFRC522class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
         self.app = app
         self.app.bind('<<GRANT_ACCESS>>', callback)
+        self.start()
     def run(self):        
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
         try:
             f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
 
@@ -151,6 +154,4 @@ class Kiosk(tk.Tk):
     def on_grant_access(self, *event):
         print('Kiosk.on_grant_access()')
         
-        self.deiconiy
-    
-        
+        self.deiconify
