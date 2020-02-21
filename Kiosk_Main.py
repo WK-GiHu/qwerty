@@ -5,12 +5,12 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
 from mfrc522 import SimpleMFRC522
-
 class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
         self.app = app
         self.app.bind('<<GRANT_ACCESS>>', callback)
+    def run(self):        
         try:
             f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
 
@@ -20,10 +20,7 @@ class FingerprintThread(threading.Thread):
         except Exception as e:
             print('The fingerprint sensor could not be initialized!')
             print('Exception message: ' + str(e))
-            
         print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-
-    def run(self):
             while True:
             
                 print('Waiting for finger...')
@@ -42,8 +39,8 @@ class FingerprintThread(threading.Thread):
                 accuracyScore = result[1]
 
                 self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-                print(self.cursor.fetchone())
-                
+                result = self.cursor.fetchone()
+                print (result)
                 if self.cursor.fetchone() is not None:
                     self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
                     self.get_Firstn = self.cursor.fetchone()
@@ -112,12 +109,12 @@ class FingerprintThread(threading.Thread):
                         messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
 
-            
+           
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
         VKeyboard(self)
-
+        
         self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
         self.cursor = self.db.cursor()
         self.db.autocommit(True)
@@ -150,8 +147,8 @@ class Kiosk(tk.Tk):
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
-        
+        self.on_grant_access()
     def on_grant_access(self, *event):
-        print(Kiosk.on_grant_access())
+        print('Kiosk.on_grant_access()')
         
         self.deiconiy
