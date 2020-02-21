@@ -47,7 +47,7 @@ class FingerprintThread(threading.Thread):
             self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
             result = self.cursor.fetchone()
             print (result)
-            if self.cursor.fetchone() is not None:
+            if result:
                 self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
                 self.get_Firstn = self.cursor.fetchone()
                 self.get_Firstn1 = str(self.get_Firstn[0])
@@ -114,6 +114,10 @@ class FingerprintThread(threading.Thread):
                 else:
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
+    
+    def calculate_age(self, born):
+        today = date.today()
+        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
@@ -132,7 +136,7 @@ class RFIDThread(threading.Thread):
             self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
             result = self.cursor.fetchone()
             print(result)
-            if (self.cursor.fetchone() is not None): 
+            if result: 
                 self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE RFID = %s", str(self.id))
                 self.get_Firstn = self.cursor.fetchone()
                 self.get_Firstn1 = str(self.get_Firstn[0])
@@ -260,4 +264,4 @@ class Kiosk(tk.Tk):
         print('Kiosk.on_grant_access()')
         
         self.deiconify
-        
+            
