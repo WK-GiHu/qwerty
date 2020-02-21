@@ -4,12 +4,14 @@ import threading
 from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
+from mfrc522 import SimpleMFRC522
 class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
         self.app = app
         self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
+
     def run(self):        
         self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
         self.cursor = self.db.cursor()
@@ -112,6 +114,106 @@ class FingerprintThread(threading.Thread):
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
 
+class RFIDThread(threading.Thread):
+    def __init__(self, app, callback):
+        super().__init__()
+        self.app = app
+        self.app.bind('<<GRANT_ACCESS>>', callback)
+        self.start()
+    
+    def run(self):
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
+        self.id, text = self.reader.read()
+        while True:
+                
+            self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
+            if (self.cursor.fetchone() is not None): 
+                self.cursor.execute("SELECT FIRST_NAME FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Firstn = self.cursor.fetchone()
+                self.get_Firstn1 = str(self.get_Firstn[0])
+                self.cursor.execute("SELECT MIDDLE_NAME FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Middlen = self.cursor.fetchone()
+                self.get_Middlen1 = str(self.get_Middlen[0])
+                self.cursor.execute("SELECT LAST_NAME FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Lastn = self.cursor.fetchone()
+                self.get_Lastn1 = str(self.get_Lastn[0])
+                self.cursor.execute("SELECT BIRTH_DATE FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Birthd = self.cursor.fetchone()
+                self.get_Birthd1 = str(self.get_Birthd[0])
+                self.dob = datetime.strptime(self.get_Birthd1, "%Y-%m-%d")
+                self.get_dob = self.calculate_age(self.dob)
+                print(self.get_dob, "years")
+                self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Placeb = self.cursor.fetchone()
+                self.get_Placeb1 = str(self.get_Placeb[0])
+                self.cursor.execute("SELECT CIVIL_STATUS FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Civils = self.cursor.fetchone()
+                self.get_Civils1 = str(self.get_Civils[0])
+                self.cursor.execute("SELECT SEX FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Sex = self.cursor.fetchone()
+                self.get_Sex1 = str(self.get_Sex[0])
+                self.cursor.execute("SELECT SUBSTRING(YEAR_OF_RESIDENCY,1,4) FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_dateOfResidency = self.cursor.fetchone()
+                self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
+                self.cursor.execute("SELECT SECURITY_QUESTION FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_sq = self.cursor.fetchone()
+                self.get_sq1 = str(self.get_sq[0])                         
+                
+                self.cursor.execute("SELECT ADDRESS FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_Address = self.cursor.fetchone()
+                self.get_Address = str(self.get_dateOfResidency[0])
+                
+                self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_admin WHERE RFID = %s", str(self.id))
+                self.get_dateOfResidency = self.cursor.fetchone()
+                self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
+                self.app.event_generate('<<GRANT_ACCESS>>', when='tail')
+                
+            else:
+                self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
+                if (self.cursor.fetchone() is not None): 
+                    self.cursor.execute("SELECT FIRST_NAME FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Firstn = self.cursor.fetchone()
+                    self.get_Firstn1 = str(self.get_Firstn[0])
+                    self.cursor.execute("SELECT MIDDLE_NAME FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Middlen = self.cursor.fetchone()
+                    self.get_Middlen1 = str(self.get_Middlen[0])
+                    self.cursor.execute("SELECT LAST_NAME FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Lastn = self.cursor.fetchone()
+                    self.get_Lastn1 = str(self.get_Lastn[0])
+                    self.cursor.execute("SELECT BIRTH_DATE FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Birthd = self.cursor.fetchone()
+                    self.get_Birthd1 = str(self.get_Birthd[0])
+                    self.dob = datetime.strptime(self.get_Birthd1, "%Y-%m-%d")
+                    self.get_dob = self.calculate_age(self.dob)
+                    print(self.get_dob)
+                    self.cursor.execute("SELECT PLACE_OF_BIRTH FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Placeb = self.cursor.fetchone()
+                    self.get_Placeb1 = str(self.get_Placeb[0])
+                    self.cursor.execute("SELECT CIVIL_STATUS FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Civils = self.cursor.fetchone()
+                    self.get_Civils1 = str(self.get_Civils[0])
+                    self.cursor.execute("SELECT SEX FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Sex = self.cursor.fetchone()
+                    self.get_Sex1 = str(self.get_Sex[0])
+                    self.cursor.execute("SELECT SUBSTRING(YEAR_OF_RESIDENCY,1,4) FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_dateOfResidency = self.cursor.fetchone()
+                    self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
+                    self.cursor.execute("SELECT SECURITY_QUESTION FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_sq = self.cursor.fetchone()
+                    self.get_sq1 = str(self.get_sq[0])               
+                    self.cursor.execute("SELECT ADDRESS FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_Address = self.cursor.fetchone()
+                    self.get_Address = str(self.get_dateOfResidency[0])
+                    self.cursor.execute("SELECT YEAR_OF_RESIDENCY FROM residents_db WHERE RFID = %s", str(self.id))
+                    self.get_dateOfResidency = self.cursor.fetchone()
+                    self.get_dateOfResidency1 = str(self.get_dateOfResidency[0])
+                    self.app.event_generate('<<GRANT_ACCESS>>', when='tail')
+
+                else:
+                    messagebox.showerror("Warning!","Your RFID card is not yet registered!")
+                    
            
 class Kiosk(tk.Tk):
     def __init__(self):
@@ -155,3 +257,4 @@ class Kiosk(tk.Tk):
         print('Kiosk.on_grant_access()')
         
         self.deiconify
+        
