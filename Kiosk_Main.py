@@ -78,14 +78,14 @@ class RFIDThread(threading.Thread):
             print(self.result)
             if self.result: 
                 messagebox.showinfo("Success!", "Welcome")
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 3, when='tail')
+                self.app.event_generate('<<GRANT_ACCESS>>', state = 11, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
                 self.result = self.cursor.fetchone()
                 print(self.result)
                 if self.result: 
                     messagebox.showinfo("Success!", "Welcome")
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 4, when='tail')
+                    self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
     
@@ -133,9 +133,8 @@ class Kiosk(tk.Tk):
             self.choose_admin()
         elif event.state == 2:
             self.choose_user()            
-        elif event.state == 3:
+        elif event.state == 11:
             self.security_question()
-        elif event.state == 4:
+        elif event.state == 12:
             self.security_question()
         self.deiconify()
-        
