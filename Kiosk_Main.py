@@ -46,30 +46,18 @@ class FingerprintThread(threading.Thread):
 
             self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
             self.result = self.cursor.fetchone()
-            print (self.result[2])
+            print (self.result)
             if self.result:
-                Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
-                update_vars(self, self.result)
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
-                
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                 self.result = self.cursor.fetchone()
                 print (self.result)
                 if self.result:
-                    Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
-                    update_vars(self, self.result)
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
-    def update_vars(cls, values):    
-        cls.__dict__.update(Residents._make(values)._asdict())
-
-        # datetime formating
-        dob = datetime.strptime(str(cls.Birthd), "%Y-%m-%d")
-        cls.get_dob = calculate_age(dob)
-    
     
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
@@ -89,27 +77,18 @@ class RFIDThread(threading.Thread):
             self.result = self.cursor.fetchone()
             print(self.result)
             if self.result: 
-                Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
-                update_vars(self, self.result)
+                messagebox.showinfo("Success!", "Welcome")
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
                 self.result = self.cursor.fetchone()
                 print(self.result)
                 if self.result: 
-                    Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
-                    update_vars(self, self.result)
+                    messagebox.showinfo("Success!", "Welcome")
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
     
-    def update_vars(cls, values):    
-        cls.__dict__.update(Residents._make(values)._asdict())
-
-        # datetime formating
-        dob = datetime.strptime(str(cls.Birthd), "%Y-%m-%d")
-        cls.get_dob = calculate_age(dob)
-        
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -148,7 +127,7 @@ class Kiosk(tk.Tk):
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
         
-    def on_grant_access(self, *event):
+    def on_grant_access(self, event):
         print('Kiosk.on_grant_access()')
         if event.state == 1:
             self.choose_admin()
@@ -156,10 +135,11 @@ class Kiosk(tk.Tk):
             self.choose_user()            
         self.deiconify()
         
-    def on_grant_access_RFID(self, *event):
+    def on_grant_access_RFID(self, event):
         print('RFID_grant_access()')
         if event.state == 1:
             self.choose_admin()
         elif event.state == 2:
             self.choose_user()            
         self.deiconify()
+        
