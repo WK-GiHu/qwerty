@@ -5,7 +5,6 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
 from mfrc522 import SimpleMFRC522
-
 class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
@@ -49,16 +48,28 @@ class FingerprintThread(threading.Thread):
             self.result = self.cursor.fetchone()
             print (self.result[2])
             if self.result:
+                Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
+                update_vars(self, self.result)
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
+                
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
                 self.result = self.cursor.fetchone()
                 print (self.result)
-                if self.result: 
+                if self.result:
+                    Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
+                    update_vars(self, self.result)
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
+    def update_vars(cls, values):    
+        cls.__dict__.update(Residents._make(values)._asdict())
+
+        # datetime formating
+        dob = datetime.strptime(str(cls.Birthd), "%Y-%m-%d")
+        cls.get_dob = calculate_age(dob)
+    
     
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
@@ -78,16 +89,27 @@ class RFIDThread(threading.Thread):
             self.result = self.cursor.fetchone()
             print(self.result)
             if self.result: 
+                Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
+                update_vars(self, self.result)
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
                 self.result = self.cursor.fetchone()
                 print(self.result)
                 if self.result: 
+                    Residents = namedtuple('ResidentsRecord', 'Firstn Middlen Lastn Sex Birthd Civils dateOfResidency Address Placeb')
+                    update_vars(self, self.result)
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
-                    
+    
+    def update_vars(cls, values):    
+        cls.__dict__.update(Residents._make(values)._asdict())
+
+        # datetime formating
+        dob = datetime.strptime(str(cls.Birthd), "%Y-%m-%d")
+        cls.get_dob = calculate_age(dob)
+        
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -120,7 +142,7 @@ class Kiosk(tk.Tk):
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
         FingerprintThread(self, callback = self.on_grant_access)
-        RFIDThread(self, callback = self.on_grant_access)
+        RFIDThread(self, callback = self.on_grant_access_RFID)
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
@@ -132,3 +154,12 @@ class Kiosk(tk.Tk):
             self.choose_admin()
         elif event.state == 2:
             self.choose_user()            
+        self.deiconify()
+        
+    def on_grant_access_RFID(self, *event):
+        print('RFID_grant_access()')
+        if event.state == 1:
+            self.choose_admin()
+        elif event.state == 2:
+            self.choose_user()            
+        self.deiconify()
