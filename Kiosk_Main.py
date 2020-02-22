@@ -5,9 +5,11 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 from PIL import Image, ImageTk
 import time
 from mfrc522 import SimpleMFRC522
+
 class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
+        result = None
         self.app = app
         self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
@@ -45,15 +47,15 @@ class FingerprintThread(threading.Thread):
             accuracyScore = result[1]
 
             self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-            self.result = self.cursor.fetchone()
-            print (self.result)
-            if self.result:
+            FingerprintThread.result = self.cursor.fetchone()
+            print (FingerprintThread.result)
+            if FingerprintThread.result:
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                self.result = self.cursor.fetchone()
-                print (self.result)
-                if self.result:
+                FingerprintThread.result = self.cursor.fetchone()
+                print (FingerprintThread.result)
+                if FingerprintThread.result:
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
@@ -62,6 +64,7 @@ class FingerprintThread(threading.Thread):
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
+        result = None
         self.app = app
         self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
@@ -74,16 +77,16 @@ class RFIDThread(threading.Thread):
         while True:
             self.id, text = self.reader.read()
             self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
-            self.result = self.cursor.fetchone()
-            print(self.result)
-            if self.result: 
+            RFIDThread.result = self.cursor.fetchone()
+            print(RFIDThread.result)
+            if RFIDThread.result: 
                 messagebox.showinfo("Success!", "Welcome")
                 self.app.event_generate('<<GRANT_ACCESS>>', state = 11, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
-                self.result = self.cursor.fetchone()
-                print(self.result)
-                if self.result: 
+                RFIDThread.result = self.cursor.fetchone()
+                print(RFIDThread.result)
+                if RFIDThread.result: 
                     messagebox.showinfo("Success!", "Welcome")
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
                 else:
@@ -104,6 +107,7 @@ class Kiosk(tk.Tk):
         self.QueryResident_admin = "CREATE TABLE IF NOT EXISTS residents_admin (ID INT(11) not null AUTO_INCREMENT, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, LAST_NAME varchar(255) not null,SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, PLACE_OF_BIRTH varchar(255) not null, SECURITY_QUESTION varchar(255), ANSWER varchar(255), RFID varchar(255) not null,FINGER_TEMPLATE varchar(255), PRIMARY KEY(ID))"
         self.cursor.execute(self.QueryResident_admin)
         """
+        
         self.title("Thesis")
         self.style = Style()
         self.style.theme_use('alt')
@@ -120,8 +124,9 @@ class Kiosk(tk.Tk):
 
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
-        FingerprintThread(self, callback = self.on_grant_access)
-        RFIDThread(self, callback = self.on_grant_access)
+        self.ref_to_class_finger = FingerprintThread(self, callback = self.on_grant_access)
+        self.ref_to_class_rfid = RFIDThread(self, callback = self.on_grant_access)
+        
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
@@ -129,6 +134,8 @@ class Kiosk(tk.Tk):
         
     def on_grant_access(self, event):
         print('Kiosk.on_grant_access()')
+        print(self.ref_to_class_finger.result)
+        print (self.ref_to_class_rfid.result)
         if event.state == 1:
             self.choose_admin()
         elif event.state == 2:
