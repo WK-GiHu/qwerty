@@ -78,14 +78,14 @@ class RFIDThread(threading.Thread):
             print(self.result)
             if self.result: 
                 messagebox.showinfo("Success!", "Welcome")
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
+                self.app.event_generate('<<GRANT_ACCESS>>', state = 3, when='tail')
             else:
                 self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
                 self.result = self.cursor.fetchone()
                 print(self.result)
                 if self.result: 
                     messagebox.showinfo("Success!", "Welcome")
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
+                    self.app.event_generate('<<GRANT_ACCESS>>', state = 4, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
     
@@ -121,7 +121,7 @@ class Kiosk(tk.Tk):
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
         FingerprintThread(self, callback = self.on_grant_access)
-        RFIDThread(self, callback = self.on_grant_access_RFID)
+        RFIDThread(self, callback = self.on_grant_access)
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
@@ -133,13 +133,9 @@ class Kiosk(tk.Tk):
             self.choose_admin()
         elif event.state == 2:
             self.choose_user()            
-        self.deiconify()
-        
-    def on_grant_access_RFID(self, event):
-        print('RFID_grant_access()')
-        if event.state == 1:
-            self.choose_admin()
-        elif event.state == 2:
-            self.choose_user()            
+        elif event.state == 3:
+            self.security_question()
+        elif event.state == 4:
+            self.security_question()
         self.deiconify()
         
