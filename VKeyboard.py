@@ -6,7 +6,8 @@ class IdleCounter(threading.Thread):
         super().__init__()
         self.app = app
         self.start()
-
+        self.app.bind('<<IDLE>>')
+        
     def run(self):
         self.deiconify()
         
