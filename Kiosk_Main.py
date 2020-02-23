@@ -124,8 +124,8 @@ class Kiosk(tk.Tk):
 
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
-        self.ref_to_class_finger = FingerprintThread(self, callback = self.on_grant_access)
-        self.ref_to_class_rfid = RFIDThread(self, callback = self.on_grant_access)
+        FingerprintThread(self, callback = self.on_grant_access)
+        RFIDThread(self, callback = self.on_grant_access)
         
         GPIO.setwarnings(False)
         self.configure(bg="white")    
@@ -134,14 +134,19 @@ class Kiosk(tk.Tk):
         
     def on_grant_access(self, event):
         print('Kiosk.on_grant_access()')
-        print(self.ref_to_class_finger.result)
-        print (self.ref_to_class_rfid.result)
-        if event.state == 1:
-            self.choose_admin()
-        elif event.state == 2:
-            self.choose_user()            
-        elif event.state == 11:
-            self.security_question()
-        elif event.state == 12:
-            self.security_question()
+        if event.state <10:
+            print ("Finger THread")
+            print (FingerprintThread.result)
+            if event.state == 1:
+                self.choose_admin()
+            elif event.state == 2:
+                self.choose_user()            
+        else:
+            print (RFIDThread.result)
+            print ("RFID Thread")
+            if event.state == 11:
+                self.security_question()    
+            elif event.state == 12:
+                self.security_question()
+        
         self.deiconify()
