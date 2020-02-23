@@ -1,20 +1,20 @@
 import tkinter as tk
 import threading
 
-class idleCounter(threading.Thread):
+class IdleCounter(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
         self.app = app
-        self.app.bind('<<IDLE>>', callback)
         self.start()
 
-    def on_idle(self, event):        
-        if event.state == 0:  # reset the counter
-           self._counter = self. timeout
-           splash = Toplevel()
-           #GUI HERE
+    def run(self):
         self.deiconify()
         
+    def on_idle(self, event):
+        if event.state == 0:  # reset the counter
+           self._counter = self.timeout
+
+    
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
     
