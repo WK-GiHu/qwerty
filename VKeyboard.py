@@ -31,7 +31,7 @@ class VKeyboard(tk.Toplevel):
         self.wm_overrideredirect(boolean=True)
         print(self.wm_geometry())
         
-        self.event_generate('<<IDLE>>', state =0, when = 'tail')
+        self.master.event_generate('<<IDLE>>', state =0, when = 'tail')
         
         self.create()
         self.uppercase = False
