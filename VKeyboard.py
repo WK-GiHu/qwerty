@@ -1,8 +1,20 @@
 import tkinter as tk
 import threading
-import tkinter as tk
-import threading
 
+class idleCounter(threading.Thread):
+    def __init__(self, app, callback):
+        super().__init__()
+        self.app = app
+        self.app.bind('<<IDLE>>', callback)
+        self.start()
+
+    def on_idle(self, event):        
+        if event.state == 0:  # reset the counter
+           self._counter = self. timeout
+           splash = Toplevel()
+           #GUI HERE
+        self.deiconify()
+        
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
     
@@ -12,10 +24,10 @@ class VKeyboard(tk.Toplevel):
         super().withdraw()
         
         self.configure(background="cornflowerblue")
-        self.geometry("+160+650")
+        self.geometry("+25+400")
         #self.geometry("+0+283")
         self.wm_attributes("-alpha", 0.7)
-        self.wm_attributes("-type", 'toolwindow')
+        #self.wm_attributes("-type", 'toolwindow')
         self.wm_overrideredirect(boolean=True)
         print(self.wm_geometry())
         
@@ -39,7 +51,7 @@ class VKeyboard(tk.Toplevel):
             
             if w_class_name in ('Entry', 'TCombobox'):
                 if self.state() == 'withdrawn':
-                    self.geometry("+160+650")
+                    self.geometry("+25+400")
                     #self.geometry("+0+283")
                     self.deiconify()
                 
