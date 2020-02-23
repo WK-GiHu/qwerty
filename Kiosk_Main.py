@@ -91,7 +91,23 @@ class RFIDThread(threading.Thread):
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
+
+class SplashThread(threading.Thread):
+    def __init__(self, app, callback):
+        super().__init__()
+        self.app = app
+        self.app.bind('<<IDLE>>', callback)
+        self.start()
     
+    def on_idle(self, event):
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
+        
+        if event.state = 0:
+            self._counter = self.timeout
+        self.deiconify()
+        
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -112,11 +128,11 @@ class Kiosk(tk.Tk):
         self.style = Style()
         self.style.theme_use('alt')
         self.style.map('TCombobox', fieldbackground=[('readonly','white')])
-        
+                
         self.ws = self.winfo_screenwidth()
         self.hs = self.winfo_screenheight()
         print(self.ws, self.hs)
-        
+        self.attributes("-fullscreen", True)
         self.img = (Image.open("background_kiosk.png"))
         self.image = self.img.resize((self.ws,self.hs))
         self.img_background = ImageTk.PhotoImage(self.image)
@@ -132,21 +148,3 @@ class Kiosk(tk.Tk):
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
         
-    def on_grant_access(self, event):
-        print('Kiosk.on_grant_access()')
-        if event.state <10:
-            print ("Finger THread")
-            print (FingerprintThread.result)
-            if event.state == 1:
-                self.choose_admin()
-            elif event.state == 2:
-                self.choose_user()            
-        else:
-            print (RFIDThread.result)
-            print ("RFID Thread")
-            if event.state == 11:
-                self.security_question()    
-            elif event.state == 12:
-                self.security_question()
-        
-        self.deiconify()
