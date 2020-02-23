@@ -1,18 +1,7 @@
 import tkinter as tk
 import threading
-
-class SplashThread(threading.Thread):
-    def __init__(self, app, callback):
-        super().__init__()
-        self.app = app
-        self.app.bind('<<IDLE>>', callback)
-        self.start()
-
-    def on_idle(self):        
-        if event.state == 0:
-            self._counter = self.timeout
-            
-
+import tkinter as tk
+import threading
 
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
@@ -127,4 +116,3 @@ if __name__ == "__main__":
     ttk.Combobox(root, values=['one', 'two', 'three', 'four', 'five']).grid()
     VKeyboard(root)
     root.mainloop()
-
