@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-
-"""
 import tkinter as tk
-# from modules.tkinter import Application
 import threading, time
 
 
@@ -27,27 +22,30 @@ class IdleCounter(threading.Thread):
         while True:
             if self._counter > 0:
                 self._counter -= 1
+                
+                # For testing only
                 print('\t{}'.format(self._counter))
                 IdleCounter.label = 'timeout in {} sec.'.format(self._counter)
                 
                 if self._counter == 0:
+                    # For testing only
                     IdleCounter.label = 'idle, click to reset'
+                    
                     self.app.event_generate('<<TIMEOUT>>', when='tail')
                     
             time.sleep(1)
                     
-        print('IdleCount terminated'.format())
+        print('IdleCounter terminated'.format())
         
     def on_idle(self, event):
         print('on_idle(state={})'.format(event.state))
         if event.state == 0:  # reset the counter
             self._counter = self.timeout
-            # print('\t_counter:{}, _is_alive:{}'.format(self._counter, self._is_alive.is_set()))
 
 
 class App(tk.Tk):
     def __init__(self):
-        super().__init__()  # options=(tk.Menu,))  # geometry="200x200+0+0")
+        super().__init__()
         self.menubar = tk.Menu()
         self.menubar.add_command(label='', command=self.on_click)
         self.config(menu=self.menubar)
