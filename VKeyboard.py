@@ -51,6 +51,7 @@ class VKeyboard(tk.Toplevel):
     
     def on_event(self, event):
         w = event.widget
+        self.master.event_generate('<<IDLE>>', state = 0, when = 'tail')
         
         # Only process objects inherited from tkinter.Widget
         # Don't process the own Button
