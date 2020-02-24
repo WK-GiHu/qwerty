@@ -8,16 +8,18 @@ class IdleCounter(threading.Thread):
         self.start()
         self.app.bind('<<IDLE>>', self.on_idle) 
         
+        #declare self.counter and self.timeout
+        
     def run(self):
         self._is_alive = threading.Event()
         self._is_alive.set()
 
-        while self._is_alive.wait(1)::
+        while self._is_alive.wait(1):
             if self.counter > 0:
                 self._counter -= 1
                 if self._counter == 0:
                     self._is_alive.clear()
-                    .event_generate('<<TIMEOUT>>',  when='tail')
+                    self.event_generate('<<TIMEOUT>>',  when='tail')
             
     def on_idle(self, event):
         if event.state == 0:  # reset the counter
@@ -36,11 +38,10 @@ class VKeyboard(tk.Toplevel):
         self.geometry("+25+400")
         #self.geometry("+0+283")
         self.wm_attributes("-alpha", 0.7)
-        #self.wm_attributes("-type", 'toolwindow')
+        self.wm_attributes("-type", 'toolwindow')
         self.wm_overrideredirect(boolean=True)
         print(self.wm_geometry())
-        
-        self.master.event_generate('<<IDLE>>', state =0, when = 'tail')
+        IdleCounter(self)
         
         self.create()
         self.uppercase = False
