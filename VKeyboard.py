@@ -2,19 +2,19 @@ import tkinter as tk
 import threading
 
 class IdleCounter(threading.Thread):
-    def __init__(self, app, callback):
+    def __init__(self, app):
         super().__init__()
         self.app = app
         self.start()
-        self.app.bind('<<IDLE>>')
+        self.app.bind('<<IDLE>>', self.on_idle) 
         
     def run(self):
-        self.deiconify()
+        #counter here
         
     def on_idle(self, event):
         if event.state == 0:  # reset the counter
            self._counter = self.timeout
-
+        
     
 class VKeyboard(tk.Toplevel):
     INSTANCE = None
