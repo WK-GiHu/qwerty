@@ -9,8 +9,16 @@ class IdleCounter(threading.Thread):
         self.app.bind('<<IDLE>>', self.on_idle) 
         
     def run(self):
-        #counter here
-        
+        self._is_alive = threading.Event()
+        self._is_alive.set()
+
+        while self._is_alive.wait(1)::
+            if self.counter > 0:
+                self._counter -= 1
+                if self._counter == 0:
+                    self._is_alive.clear()
+                    .event_generate('<<TIMEOUT>>',  when='tail')
+            
     def on_idle(self, event):
         if event.state == 0:  # reset the counter
            self._counter = self.timeout
