@@ -10,12 +10,11 @@ from VKeyboard import VKeyboard
 class SplashScreen(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.geometry("200x200+0+0")
-        #self.attributes("-fullscreen", True)
+        self.attributes("-fullscreen", True)
 
         self.funcid = self.bind('<Button-1>', self.on_button_clicked)
 
-        label = Label(self, text = "SPLASH SCREEN")
+        label = Label(self, text = "NO ANNOUNCEMENT YET!!!")
         label.pack(fill = "both", expand =1)
         
         
@@ -23,9 +22,9 @@ class SplashScreen(tk.Toplevel):
     
         print('SplashScreen.on_button_click')
         self.unbind('<Button-1>', funcid=self.funcid)
-        self.master.event_generate('<<IDLE>>', when='tail')
+        self.master.event_generate('<<IDLE>>', state = 1, when='tail')
         self.destroy()
-        
+         
         
 class IdleCounter(threading.Thread):
     label = 'idle'
@@ -62,9 +61,11 @@ class IdleCounter(threading.Thread):
         print('IdleCounter terminated'.format())
         
     def on_idle(self, event):
-        print('on_idle(state={})'.format(event.state))
-        if event.state == 0:  # reset the counter
-            self._counter = self.timeout
+        print('IdleCounter.on_idle(state={})'.format(event.state))
+        if event.state == 1:
+            event.state = 0
+            if self._counter > 0 and event.state == 0:
+                self._counter = self.timeout
 
     
 class Kiosk(tk.Tk):
@@ -104,7 +105,6 @@ class Kiosk(tk.Tk):
         RFIDThread(self, callback = self.on_grant_access)
         IdleCounter(self)
         self.bind('<<TIMEOUT>>', self.on_timeout)
-
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
@@ -112,3 +112,4 @@ class Kiosk(tk.Tk):
         
     def on_timeout(self, event):
         SplashScreen(self)
+     
