@@ -1,139 +1,151 @@
-import tkinter as tk
+from tkinter import *
 import threading
+import pymysql
+from mfrc522 import SimpleMFRC522
+import RPi.GPIO as GPIO
+from PIL import Image, ImageTk
+import datetime
+from pyfingerprint.pyfingerprint import PyFingerprint
+from VKeyboard import VKeyboard
 
-class IdleCounter(threading.Thread):
-    def __init__(self, app):
+
+class FingerprintThread(threading.Thread):
+    def __init__(self, app, callback):
         super().__init__()
+        result = None
         self.app = app
+        self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
-        self.app.bind('<<IDLE>>', self.on_idle) 
-        
-    def run(self):
-        self._is_alive = threading.Event()
-        self._is_alive.set()
 
-        while self._is_alive.wait(1)::
-            if self.counter > 0:
-                self._counter -= 1
-                if self._counter == 0:
-                    self._is_alive.clear()
-                    .event_generate('<<TIMEOUT>>',  when='tail')
-            
-    def on_idle(self, event):
-        if event.state == 0:  # reset the counter
-           self._counter = self.timeout
+    def run(self):        
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
+        try:
+            f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
+
+            if ( f.verifyPassword() == False ):
+                raise ValueError('The given fingerprint sensor password is wrong!')
+
+        except Exception as e:
+            print('The fingerprint sensor could not be initialized!')
+            print('Exception message: ' + str(e))
         
-    
-class VKeyboard(tk.Toplevel):
-    INSTANCE = None
-    
-    def __init__(self, parent):
-        super().__init__(parent)
-        # Don't show the 'Toplevel' at instantiation
-        super().withdraw()
+        print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
+        while True:
         
-        self.configure(background="cornflowerblue")
-        self.geometry("+25+400")
-        #self.geometry("+0+283")
-        self.wm_attributes("-alpha", 0.7)
-        #self.wm_attributes("-type", 'toolwindow')
-        self.wm_overrideredirect(boolean=True)
-        print(self.wm_geometry())
-        
-        self.master.event_generate('<<IDLE>>', state =0, when = 'tail')
-        
-        self.create()
-        self.uppercase = False
-        self.entry = None
-        
-        # Process all application == parent events
-        parent.bind_all('<FocusIn>', self.on_event, add='+')
-        parent.bind_all('<Button-1>', self.on_event, add='+')
-    
-    def on_event(self, event):
-        w = event.widget
-        
-        # Only process objects inherited from tkinter.Widget
-        # Don't process the own Button
-        if isinstance(w, tk.Widget) and w.master is not self:
-            w_class_name = w.winfo_class()
-            
-            if w_class_name in ('Entry', 'TCombobox'):
-                if self.state() == 'withdrawn':
-                    self.geometry("+25+400")
-                    #self.geometry("+0+283")
-                    self.deiconify()
-                
-                self.entry = w
-            
-            elif w_class_name in ('Button',):
-                super().withdraw()
-                w.focus_force()
-    
-    def create(self):
-        alphabets = [
-            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
-            ['Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', "\\"],
-            ['Caps Lock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'k', ';', "'", 'Enter'],
-            ['Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'Shift'],
-            ['Space']
-        ]
-        
-        for y, row in enumerate(alphabets):
-            x = 0
-            for text in row:
-                if text in ('Enter', 'Shift'):
-                    width = 26
-                    columnspan = 2
-                    height = 3
-                elif text == 'Space':
-                    width = 200
-                    columnspan = 16
-                    height = 3
-                elif text in ('Backspace', '\\', 'Tab', '`', 'Caps Lock'):
-                    width = 12
-                    columnspan = 1
-                    height = 3
+            print('Waiting for finger...')
+
+            ## Wait that finger is read
+            while ( f.readImage() == False ):
+                pass
+
+                ## Converts read image to characteristics and stores it in charbuffer 1
+            f.convertImage(0x01)
+
+                ## Searchs template
+            result = f.searchTemplate()
+
+            positionNumber = result[0]
+            accuracyScore = result[1]
+
+            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
+            FingerprintThread.result = self.cursor.fetchone()
+            print (FingerprintThread.result)
+            if FingerprintThread.result:
+                self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
+            else:
+                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
+                FingerprintThread.result = self.cursor.fetchone()
+                print (FingerprintThread.result)
+                if FingerprintThread.result:
+                    self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
-                    width = 10
-                    columnspan = 1
-                    height = 3
-                _btn = tk.Button(self, text=text, width=width, height=height, padx=3, pady=3, bd=12, bg="black", fg="white")
-                _btn.grid(row=y, column=x, columnspan=columnspan)
-                _btn.bind('<Button-1>', self.select)
-                
-                x += columnspan
+                    messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
+
     
-    def select(self, event):
-        value = event.widget['text']
+class RFIDThread(threading.Thread):
+    def __init__(self, app, callback):
+        super().__init__()
+        result = None
+        self.app = app
+        self.app.bind('<<GRANT_ACCESS>>', callback)
+        self.start()
+    
+    def run(self):
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
+        self.reader = SimpleMFRC522()
+        while True:
+            self.id, text = self.reader.read()
+            self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
+            RFIDThread.result = self.cursor.fetchone()
+            print(RFIDThread.result)
+            if RFIDThread.result: 
+                messagebox.showinfo("Success!", "Welcome")
+                self.app.event_generate('<<GRANT_ACCESS>>', state = 11, when='tail')
+            else:
+                self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
+                RFIDThread.result = self.cursor.fetchone()
+                print(RFIDThread.result)
+                if RFIDThread.result: 
+                    messagebox.showinfo("Success!", "Welcome")
+                    self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
+                else:
+                    messagebox.showerror("Warning!","Your RFID card is not yet registered!")
+    
+class Kiosk(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        VKeyboard(self)
         
-        if value == "Space":
-            value = ' '
-        elif value == 'Enter':
-            value = '\n'
-        elif value == 'Tab':
-            value = '\t'
+        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.cursor = self.db.cursor()
+        self.db.autocommit(True)
+
+        #create table
+        """self.QueryResident = "CREATE TABLE IF NOT EXISTS residents_db (ID INT(11) not null AUTO_INCREMENT, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, LAST_NAME varchar(255) not null,SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, PLACE_OF_BIRTH varchar(255) not null, SECURITY_QUESTION varchar(255), ANSWER varchar(255), RFID varchar(255) not null, FINGER_TEMPLATE varchar(255), PRIMARY KEY (ID))"
+        self.cursor.execute(self.QueryResident)
+        self.QueryResident_admin = "CREATE TABLE IF NOT EXISTS residents_admin (ID INT(11) not null AUTO_INCREMENT, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, LAST_NAME varchar(255) not null,SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, PLACE_OF_BIRTH varchar(255) not null, SECURITY_QUESTION varchar(255), ANSWER varchar(255), RFID varchar(255) not null,FINGER_TEMPLATE varchar(255), PRIMARY KEY(ID))"
+        self.cursor.execute(self.QueryResident_admin)
+        """
         
-        if value == "Backspace":
-            if isinstance(self.entry, tk.Entry):
-                self.entry.delete(len(self.entry.get()) - 1, 'end')
-            else:  # tk.Text
-                self.entry.delete('end - 2c', 'end')
+        self.title("Thesis")
+        self.style = Style()
+        self.style.theme_use('alt')
+        self.style.map('TCombobox', fieldbackground=[('readonly','white')])
+                
+        self.ws = self.winfo_screenwidth()
+        self.hs = self.winfo_screenheight()
+        print(self.ws, self.hs)
+        self.attributes("-fullscreen", True)
+        self.img = (Image.open("background_kiosk.png"))
+        self.image = self.img.resize((self.ws,self.hs))
+        self.img_background = ImageTk.PhotoImage(self.image)
+        self.imglabel = Label(self, image = self.img_background).place(x=0,y=0)
+
+        self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
-        elif value in ('Caps Lock', 'Shift'):
-            self.uppercase = not self.uppercase  # change True to False, or False to True
+        FingerprintThread(self, callback = self.on_grant_access)
+        RFIDThread(self, callback = self.on_grant_access)
+        
+        GPIO.setwarnings(False)
+        self.configure(bg="white")    
+        self.geometry("{}x{}".format(self.ws, self.hs))
+        self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
+        
+    def on_grant_access(self, event):
+        print('Kiosk.on_grant_access()')
+        if event.state <10:
+            if event.state == 1:
+                self.choose_admin()
+            elif event.state == 2:
+                self.choose_user()            
         else:
-            if self.uppercase:
-                value = value.upper()
-            
-            self.entry.insert('end', value)
-
-
-if __name__ == "__main__":
-    import tkinter.ttk as ttk
-    root = tk.Tk()
-    tk.Entry(root).grid()
-    tk.Button(root, text='withdraw').grid()
-    ttk.Combobox(root, values=['one', 'two', 'three', 'four', 'five']).grid()
-    VKeyboard(root)
-    root.mainloop()
+            if event.state == 11:
+                self.security_question()    
+            elif event.state == 12:
+                self.security_question()
+        
+        self.deiconify()
