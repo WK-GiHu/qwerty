@@ -95,6 +95,54 @@ class RFIDThread(threading.Thread):
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
     
+
+class IdleCounter(threading.Thread):
+    label = 'idle'
+
+    def __init__(self, app):
+        super().__init__(daemon=True)
+        self.app = app
+
+        self.timeout = 5
+        self._counter = self.timeout
+
+        self.start()
+        self.app.bind('<<IDLE>>', self.on_idle)
+
+    def run(self):
+        print('run()'.format())
+        
+        while True:
+            if self._counter > 0:
+                self._counter -= 1
+                
+                # For testing only
+                print('\t{}'.format(self._counter))
+                IdleCounter.label = 'timeout in {} sec.'.format(self._counter)
+                
+                if self._counter == 0:
+                    # For testing only
+                    IdleCounter.label = 'idle, click to reset'
+                    
+                    self.app.event_generate('<<TIMEOUT>>', when='tail')
+                    
+            time.sleep(1)
+                    
+        print('IdleCounter terminated'.format())
+        
+    def on_idle(self, event):
+        print('on_idle(state={})'.format(event.state))
+        if event.state == 0:  # reset the counter
+            self._counter = self.timeout
+
+
+class SplashScreen(tk.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.attributes("-fullscreen", True)
+        label = Label(self, text = "SPLASH SCREEN")
+        label.pack(fill = "both", expand =1)
+        
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -129,12 +177,19 @@ class Kiosk(tk.Tk):
         
         FingerprintThread(self, callback = self.on_grant_access)
         RFIDThread(self, callback = self.on_grant_access)
-        
+        IdleCounter(self)
+        self.bind('<<TIMEOUT>>', self.on_timeout)
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
         
+    def on_click(self, event):
+        self.event_generate('<<IDLE>>', when='tail')
+    
+    def on_timeout(self, event):
+        SplashScreen()
+                
     def on_grant_access(self, event):
         print('Kiosk.on_grant_access()')
         if event.state <10:
