@@ -8,7 +8,6 @@ import datetime
 from pyfingerprint.pyfingerprint import PyFingerprint
 from VKeyboard import VKeyboard
 
-
 class FingerprintThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__()
@@ -94,7 +93,6 @@ class RFIDThread(threading.Thread):
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your RFID card is not yet registered!")
-    
 
 class IdleCounter(threading.Thread):
     label = 'idle'
@@ -137,12 +135,22 @@ class IdleCounter(threading.Thread):
 
 
 class SplashScreen(tk.Toplevel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
+        
         self.attributes("-fullscreen", True)
         label = Label(self, text = "SPLASH SCREEN")
         label.pack(fill = "both", expand =1)
+        parent.bind_all('<Button-1>', self.on_button_click)
+
         
+    def on_button_click(self, event):
+        
+        print('SplashScreen.on_button_click')
+        # Cleanup, unbind the `<Button-1>` event 
+        # Reset IdleCounter
+        self.destroy()
+            
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -184,23 +192,5 @@ class Kiosk(tk.Tk):
         self.geometry("{}x{}".format(self.ws, self.hs))
         self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
         
-    def on_click(self, event):
-        self.event_generate('<<IDLE>>', when='tail')
-    
     def on_timeout(self, event):
-        SplashScreen()
-                
-    def on_grant_access(self, event):
-        print('Kiosk.on_grant_access()')
-        if event.state <10:
-            if event.state == 1:
-                self.choose_admin()
-            elif event.state == 2:
-                self.choose_user()            
-        else:
-            if event.state == 11:
-                self.security_question()    
-            elif event.state == 12:
-                self.security_question()
-        
-        self.deiconify()
+        SplashScreen(self)
