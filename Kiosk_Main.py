@@ -7,93 +7,26 @@ from PIL import Image, ImageTk
 import datetime
 from pyfingerprint.pyfingerprint import PyFingerprint
 from VKeyboard import VKeyboard
+class SplashScreen(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.geometry("200x200+0+0")
+        #self.attributes("-fullscreen", True)
 
-class FingerprintThread(threading.Thread):
-    def __init__(self, app, callback):
-        super().__init__()
-        result = None
-        self.app = app
-        self.app.bind('<<GRANT_ACCESS>>', callback)
-        self.start()
+        self.funcid = self.bind('<Button-1>', self.on_button_clicked)
 
-    def run(self):        
-        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
-        self.cursor = self.db.cursor()
-        self.db.autocommit(True)
-        try:
-            f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-
-            if ( f.verifyPassword() == False ):
-                raise ValueError('The given fingerprint sensor password is wrong!')
-
-        except Exception as e:
-            print('The fingerprint sensor could not be initialized!')
-            print('Exception message: ' + str(e))
+        label = Label(self, text = "SPLASH SCREEN")
+        label.pack(fill = "both", expand =1)
         
-        print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-        while True:
         
-            print('Waiting for finger...')
-
-            ## Wait that finger is read
-            while ( f.readImage() == False ):
-                pass
-
-                ## Converts read image to characteristics and stores it in charbuffer 1
-            f.convertImage(0x01)
-
-                ## Searchs template
-            result = f.searchTemplate()
-
-            positionNumber = result[0]
-            accuracyScore = result[1]
-
-            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-            FingerprintThread.result = self.cursor.fetchone()
-            print (FingerprintThread.result)
-            if FingerprintThread.result:
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
-            else:
-                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                FingerprintThread.result = self.cursor.fetchone()
-                print (FingerprintThread.result)
-                if FingerprintThread.result:
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
-                else:
-                    messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
-
+    def on_button_clicked(self, event):
     
-class RFIDThread(threading.Thread):
-    def __init__(self, app, callback):
-        super().__init__()
-        result = None
-        self.app = app
-        self.app.bind('<<GRANT_ACCESS>>', callback)
-        self.start()
-    
-    def run(self):
-        self.db = pymysql.connect(host = "192.168.1.19",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
-        self.cursor = self.db.cursor()
-        self.db.autocommit(True)
-        self.reader = SimpleMFRC522()
-        while True:
-            self.id, text = self.reader.read()
-            self.cursor.execute("SELECT * FROM residents_admin WHERE RFID = %s",str(self.id))
-            RFIDThread.result = self.cursor.fetchone()
-            print(RFIDThread.result)
-            if RFIDThread.result: 
-                messagebox.showinfo("Success!", "Welcome")
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 11, when='tail')
-            else:
-                self.cursor.execute("SELECT * FROM residents_db WHERE RFID = %s", str(self.id))
-                RFIDThread.result = self.cursor.fetchone()
-                print(RFIDThread.result)
-                if RFIDThread.result: 
-                    messagebox.showinfo("Success!", "Welcome")
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 12, when='tail')
-                else:
-                    messagebox.showerror("Warning!","Your RFID card is not yet registered!")
-
+        print('SplashScreen.on_button_click')
+        self.unbind('<Button-1>', funcid=self.funcid)
+        self.master.event_generate('<<IDLE>>', when='tail')
+        self.destroy()
+        
+        
 class IdleCounter(threading.Thread):
     label = 'idle'
 
@@ -133,24 +66,7 @@ class IdleCounter(threading.Thread):
         if event.state == 0:  # reset the counter
             self._counter = self.timeout
 
-
-class SplashScreen(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        
-        self.attributes("-fullscreen", True)
-        label = Label(self, text = "SPLASH SCREEN")
-        label.pack(fill = "both", expand =1)
-        parent.bind_all('<Button-1>', self.on_button_click)
-
-        
-    def on_button_click(self, event):
-        
-        print('SplashScreen.on_button_click')
-        # Cleanup, unbind the `<Button-1>` event 
-        # Reset IdleCounter
-        self.destroy()
-            
+    
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -175,6 +91,7 @@ class Kiosk(tk.Tk):
         self.ws = self.winfo_screenwidth()
         self.hs = self.winfo_screenheight()
         print(self.ws, self.hs)
+        
         self.attributes("-fullscreen", True)
         self.img = (Image.open("background_kiosk.png"))
         self.image = self.img.resize((self.ws,self.hs))
@@ -187,6 +104,7 @@ class Kiosk(tk.Tk):
         RFIDThread(self, callback = self.on_grant_access)
         IdleCounter(self)
         self.bind('<<TIMEOUT>>', self.on_timeout)
+
         GPIO.setwarnings(False)
         self.configure(bg="white")    
         self.geometry("{}x{}".format(self.ws, self.hs))
