@@ -30,22 +30,23 @@ class FingerprintThread(threading.Thread):
             print('Exception message: ' + str(e))
         
         print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-        retry = 0
-        while True:
-            print('Waiting for finger...')
-            try:
-                while ( f.readImage() == False ):
-                    time.sleep(1)
-                    pass
-                break
-            except Exception as e:
-                 print('PyFingerprint:{}, try {} of 3'.format(e, retry))
-                 if retry == 3:
-                     raise Exception('PyFingerprint: Failed to read image 3 times, exiting.')
 
-                 # delay 2 seconds before next try
-                 time.sleep(2)
-            
+        while True:
+            retry = 0
+            while True:
+                print('Waiting for finger...')
+                try:
+                    while (f.readImage() == False):
+                        pass
+                    break
+                except Exception as e:
+                     print('PyFingerprint:{}, try {} of 3'.format(e, retry))
+                     if retry == 3:
+                         raise Exception('PyFingerprint: Failed to read image 3 times, exiting.')
+
+                     # delay 2 seconds before next try
+                     time.sleep(2)
+                
             ## Converts read image to characteristics and stores it in charbuffer 1
             f.convertImage(0x01)
 
@@ -68,7 +69,7 @@ class FingerprintThread(threading.Thread):
                     self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
                 else:
                     messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
-    
+
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
