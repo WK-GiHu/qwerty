@@ -17,9 +17,13 @@ class admin_system(Tk):
         Tk.__init__(self)
         self.db = pymysql.connect(host = "192.168.1.9", port = 3306, user = "root",passwd = "justin",db= "thesis_main")
         self.cursor = self.db.cursor()
+        GPIO.setwarnings(False)
         
         self.ws = self.winfo_screenwidth()
         self.hs = self.winfo_screenheight()
+        
+        self.geometry("{}x{}".format(self.ws, self.hs))
+        
         self.reader = SimpleMFRC522()
 
         self.db.autocommit(True)
@@ -29,24 +33,39 @@ class admin_system(Tk):
         self.cursor.execute(self.QueryResident_admin)
         self.QueryResident_announcement = "CREATE TABLE IF NOT EXISTS residents_announcement (IMAGE LONGBLOB not null)"
         self.cursor.execute(self.QueryResident_announcement)
-        self.QueryResident_edit_form = "CREATE TABLE IF NOT EXISTS edit_form_db (X_Position varchar(255) not null, Y_Position varchar(255) not null, Form_Details varchar(255) not null)"
+        self.QueryResident_edit_form = "CREATE TABLE IF NOT EXISTS edit_form_db (`X-Position` varchar(255) not null, `Y-Position` varchar(255) not null, Form_Details varchar(255) not null)"
         self.cursor.execute(self.QueryResident_edit_form)
+        self.QueryResident_report = "CREATE TABLE IF NOT EXISTS residents_transaction_db (NAME varchar(255) not null, CONTACT_NO varchar(255) not null, TIME_AND_DATE date, FORM_PRINTED varchar(255) not null, OR_NUMBER varchar(255) not null)"
+        self.cursor.execute(self.QueryResident_report)
         
         self.login_frame = Frame(self)
         self.login_frame.pack(fill = "both", expand = 1)
+        self.admin_log_img = (Image.open("admin_bg.jpg"))
+        self.admin_log_image = self.admin_log_img.resize((self.ws, self.hs))
+        self.img_background_log = ImageTk.PhotoImage(self.admin_log_image)
+        self.label_log = Label(self.login_frame, image = self.img_background_log) 
+        self.label_log.place(x=0, y = 0)
         
-        self.label_username = Label(self.login_frame, text = "Username: ", bg = "white")
+        self.input_field_frame = Frame(self.login_frame, bg = "white")
+        self.input_field_frame.grid(row = 0, column = 0)
+        
+        self.label_username = Label(self.input_field_frame, text = "Username: ", bg = "white")
         self.label_username.grid(row = 1, column = 0)
-        self.label_password = Label(self.login_frame, text = "Password: ", bg = "white")
+        self.label_password = Label(self.input_field_frame, text = "Password: ", bg = "white")
         self.label_password.grid(row = 2, column = 0)
+        
         self.username = StringVar()
         self.password = StringVar()
-        self.entry_username = Entry(self.login_frame, textvariable = self.username, bg = "white")
+        
+        self.entry_username = Entry(self.input_field_frame, textvariable = self.username, bg = "white")
         self.entry_username.grid(row = 1, column = 1)
-        self.entry_password = Entry(self.login_frame, textvariable = self.password, show = "*",bg = "white")
+        self.entry_password = Entry(self.input_field_frame, textvariable = self.password, show = "*",bg = "white")
         self.entry_password.grid(row = 2, column = 1)
-        button_submit = Button(self.login_frame, text="Login", command=lambda: self.submit_login(self.username.get(), self.password.get()))
+        button_submit = Button(self.input_field_frame, text="Login", command=lambda: self.submit_login(self.username.get(), self.password.get()))
         button_submit.grid(row = 3, column = 0, columnspan = 2)
+        self.login_frame.columnconfigure(0, weight = 1)
+        self.login_frame.rowconfigure(0, weight = 1)
+
 
     def submit_login(self, username, password):
         self.cursor.execute("SELECT * FROM residents_admin WHERE USERNAME = %s AND PASSWORD = %s", (username, password))
@@ -85,7 +104,7 @@ class admin_system(Tk):
               self.data[5],self.data[6],self.data[7],self.data[8],self.data[9],
               self.data[10],self.data[11],self.data[12],self.data[13],)
         
-        self.picture=self.data[11]
+        self.picture=self.data[13]
         print(self.picture)
         
         self.img_detail = Image.open("member_details.jpg")
@@ -1201,8 +1220,6 @@ class admin_system(Tk):
     def logout(self):
         self.Main_Frame.pack_forget()
         self.login_frame.pack(fill = "both", expand = 1)
-        self.username.set("")
-        self.password.set("")
         
     def register_user(self):
         self.Main_Frame.pack_forget()
@@ -1233,9 +1250,8 @@ class admin_system(Tk):
         self.year_frame_user = Frame(self.register_user_frame, bg = "White")
         self.year_frame_user.grid(row = 5, column = 0, sticky = "w", pady = 10, padx = 25)
         
-        
         self.log_frame_user = Frame(self.register_user_frame, bg = "white")
-        self.log_frame_user.grid(row = 6, column = 0, sticky = "w", pady = 10, padx = 25)
+        self.log_frame_user.grid(row = 6, column = 0, sticky = "w", padx = 25)
         
         first_name_user = StringVar()
         middle_name_user = StringVar()
@@ -1558,7 +1574,7 @@ class admin_system(Tk):
         self.admin_register_img = (Image.open("admin_bg.jpg"))
         self.admin_register_image= self.admin_register_img.resize((self.ws, self.hs))
         self.img_admin_register = ImageTk.PhotoImage(self.admin_register_image)
-        self.label_register_admin = Label(self.register_admin_frame, image = self.img_admin_register) 
+        self.label_register_admin = Label(self.register_admin_frame, image = self.img_admin_register)
         self.label_register_admin.place(x=0, y = 0)
         
         self.header_frame = Frame(self.register_admin_frame, bg = "white")
@@ -1577,7 +1593,7 @@ class admin_system(Tk):
         self.birth_frame.grid(row = 4, column = 0, sticky = "w", pady = 10, padx = 25)
         
         self.log_frame = Frame(self.register_admin_frame, bg = "white")
-        self.log_frame.grid(row = 6, column = 0, sticky = "w", pady = 10, padx = 25)
+        self.log_frame.grid(row = 7, column = 0, sticky = "w", pady = 10, padx = 25)
         
         self.p = StringVar()
 
@@ -1593,6 +1609,8 @@ class admin_system(Tk):
         address = StringVar()
         place_of_birth = StringVar()
         contact_no = StringVar()
+        security_question_admin = StringVar()
+        answer_admin = StringVar()
         username = StringVar()
         password= StringVar()
         self.confirm_password = StringVar()
@@ -1681,11 +1699,54 @@ class admin_system(Tk):
         self.entry_contact_no = Entry(self.year_frame, textvariable = contact_no, bg = "white")
         self.entry_contact_no.grid(row = 1, column = 4, sticky = "w", padx = 10)
 
-        
         self.label_usrname = Label(self.log_frame, text = "Username",bg = "white")
         self.label_usrname.grid(row = 0, column = 0, sticky = "w")
         self.entry_usrname = Entry(self.log_frame, textvariable = username,bg = "white", width = "20")
         self.entry_usrname.grid(row = 1, column = 0)
+        
+        self.frame_sqa_admin = Frame(self.register_admin_frame, bg = "white")
+        self.frame_sqa_admin.grid(row = 6, column = 0, sticky = "w", pady = 10, padx = 25)
+        
+        
+        self.label_question = Label(self.frame_sqa_admin, text = "Security Question",bg = "white")
+        self.label_question.grid(row= 0, column = 0, sticky = "w")
+        
+        self.question_list = ["What was your childhood nickname?",
+                              "In what city did you meet your spouse/significant other?",
+                              "What is the name of your favorite childhood friend?",
+                              "What street did you live on in third grade?",
+                              "What is the middle name of your youngest child?",
+                              "What is your oldest sibling's middle name?",
+                              "What school did you attend for sixth grade?",
+                              "What is your oldest cousin's first and last name?",
+                              "What was the name of your first stuffed animal?",
+                              "In what city or town did your mother and father meet?",
+                              "Where were you when you had your first kiss?",
+                              "What is the first name of the boy or girl that you first kissed?",
+                              "What was the last name of your third grade teacher?",
+                              "In what city does your nearest sibling live?",
+                              "What is your maternal grandmother's maiden name?",
+                              "In what city or town was your first job?",
+                              "What is the name of the place your wedding reception was held?",
+                              "What is the name of a college you applied to but didn't attend?",
+                              "What was the name of your elementary / primary school?",
+                              "What is the name of the company of your first job?",
+                              "What was your favorite place to visit as a child?",
+                              "What is your spouse's mother's maiden name?",
+                              "What is the country of your ultimate dream vacation?",
+                              "What is the name of your favorite childhood teacher?",
+                              "To what city did you go on your honeymoon?",
+                              "What was your dream job as a child?",
+                              "Who was your childhood hero?"]
+        
+        self.question_list= ttk.Combobox(self.frame_sqa_admin, state = "readonly",width = "43", textvariable = security_question_admin, values = self.question_list)
+
+        self.question_list.grid(row = 1, column = 0)
+
+        self.answer_label_admin = Label(self.frame_sqa_admin, text = "Answer", bg ="white")
+        self.answer_label_admin.grid(row = 0, column = 1, sticky = "w")
+        self.answer_entry_admin = Entry(self.frame_sqa_admin, textvariable = answer_admin)
+        self.answer_entry_admin.grid(row = 1, column = 1, padx = 10)
         
         self.label_password = Label(self.log_frame, text = "Password",bg = "white")
         self.label_password.grid(row = 0, column = 1, padx = 20, sticky = "w")
@@ -1698,7 +1759,7 @@ class admin_system(Tk):
         self.entry_confirm_pass.grid(row = 1, column = 2)
         
         self.button_frame = Frame(self.register_admin_frame, bg = "white")
-        self.button_frame.grid(row = 7, column = 0 , sticky = "w")
+        self.button_frame.grid(row = 8, column = 0 , sticky = "w")
         
         self.upload_img_frame = Frame(self.button_frame, bg = "white")
         self.upload_img_frame.grid(row = 0, column = 0, sticky = "w")
@@ -1722,7 +1783,10 @@ class admin_system(Tk):
                                                                                                                                   address.get(),
                                                                                                                                   place_of_birth.get(),
                                                                                                                                   contact_no.get(),
-                                                                                                                                  username.get(), password.get()))
+                                                                                                                                  username.get(),
+                                                                                                                                  password.get(),
+                                                                                                                                  security_question_admin.get(),
+                                                                                                                                  answer_admin.get()))
         self.button_submit.grid(row = 0, column = 2, padx = 40)
 
         self.back_button = Button(self.submit_frame, text = "Back",bg = "white", command = self.back_to_main_page_fadmin)
@@ -1749,7 +1813,7 @@ class admin_system(Tk):
             binaryData = file.read()
         return binaryData
     
-    def registered(self, first_name, middle_name, last_name, sex, birth_year, birth_month, birth_day, civil_status, year_of_residency, address, place_of_birth, contact_no, username, password):
+    def registered(self, first_name, middle_name, last_name, sex, birth_year, birth_month, birth_day, civil_status, year_of_residency, address, place_of_birth, contact_no, username, password, security_question_admin, answer_admin):
         self.first_name = first_name
         self.middle_name = middle_name
         self.last_name = last_name
@@ -1764,14 +1828,16 @@ class admin_system(Tk):
         self.contact_no = contact_no
         self.username = username
         self.password = password
+        self.security_question_admin = security_question_admin
+        self.answer_admin = answer_admin
         
         self.cursor.execute("SELECT * FROM residents_admin WHERE USERNAME = %s", (username))
         print("Nagawa to")
         if (self.cursor.fetchone() is not None):
             messagebox.showerror("Notice!", "Username already taken")
-        elif (first_name =="" or middle_name == "" or last_name == "" or sex =="" or birth_day == "" or civil_status =="" or
-            year_of_residency == "" or address =="" or place_of_birth == "" or username == "" or password == "" or self.confirm_password.get() ==""
-              or contact_no ==""):
+        elif (self.first_name =="" or self.middle_name == "" or self.last_name == "" or self.sex =="" or self.birth_day == "" or self.civil_status =="" or
+            self.year_of_residency == "" or self.address =="" or self.place_of_birth == "" or self.username == "" or self.password == "" or self.confirm_password ==""
+              or self.contact_no =="" or self.security_question_admin == "" or self.answer_admin == ""):
             messagebox.showerror("Error!","Please complete the information above")
         elif password !=self.confirm_password.get():
             messagebox.showerror("Notice","Password does not match")    
@@ -1833,20 +1899,22 @@ class admin_system(Tk):
             if self.res_id:
                 messagebox.showerror("Notice!", "RFID already registered")
             else:
-                self.cursor.execute ("INSERT INTO residents_admin (LAST_NAME, FIRST_NAME, MIDDLE_NAME, SEX, BIRTH_DATE, CIVIL_STATUS, YEAR_OF_RESIDENCY, ADDRESS, PLACE_OF_BIRTH, Contact_No, IMAGE, USERNAME, PASSWORD, RFID) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",(self.last_name,
-                                                                                                                                                                                                                                                                                                    self.middle_name,
-                                                                                                                                                                                                                                                                                                    self.first_name,
-                                                                                                                                                                                                                                                                                                    self.sex,
-                                                                                                                                                                                                                                                                                                    self.birth_day,
-                                                                                                                                                                                                                                                                                                    self.civil_status,
-                                                                                                                                                                                                                                                                                                    self.year_of_residency,
-                                                                                                                                                                                                                                                                                                    self.address,
-                                                                                                                                                                                                                                                                                                    self.place_of_birth,
-                                                                                                                                                                                                                                                                                                    self.contact_no,
-                                                                                                                                                                                                                                                                                                    self.user_photo,
-                                                                                                                                                                                                                                                                                                    self.username,
-                                                                                                                                                                                                                                                                                                    self.password,
-                                                                                                                                                                                                                                                                                                    self.id))
+                self.cursor.execute ("INSERT INTO residents_admin (LAST_NAME, FIRST_NAME, MIDDLE_NAME, SEX, BIRTH_DATE, CIVIL_STATUS, YEAR_OF_RESIDENCY, ADDRESS, PLACE_OF_BIRTH, Contact_No, SECURITY_QUESTION, ANSWER, IMAGE, USERNAME, PASSWORD, RFID) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",(self.last_name,
+                                                                                                                                                                                                                                                                                                                                   self.middle_name,
+                                                                                                                                                                                                                                                                                                                                   self.first_name,
+                                                                                                                                                                                                                                                                                                                                   self.sex,
+                                                                                                                                                                                                                                                                                                                                   self.birth_day,
+                                                                                                                                                                                                                                                                                                                                   self.civil_status,
+                                                                                                                                                                                                                                                                                                                                   self.year_of_residency,
+                                                                                                                                                                                                                                                                                                                                   self.address,
+                                                                                                                                                                                                                                                                                                                                   self.place_of_birth,
+                                                                                                                                                                                                                                                                                                                                   self.contact_no,
+                                                                                                                                                                                                                                                                                                                                   self.security_question_admin,
+                                                                                                                                                                                                                                                                                                                                   self.answer_admin,
+                                                                                                                                                                                                                                                                                                                                   self.user_photo,
+                                                                                                                                                                                                                                                                                                                                   self.username,
+                                                                                                                                                                                                                                                                                                                                   self.password,
+                                                                                                                                                                                                                                                                                                                                   self.id))
                 self.db.commit()
                 messagebox.showinfo("Success", "Registration Complete", parent = self.admin_register)
                 self.admin_register.destroy()
