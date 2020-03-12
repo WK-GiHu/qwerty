@@ -27,7 +27,7 @@ class admin_system(Tk):
         self.reader = SimpleMFRC522()
 
         self.db.autocommit(True)
-        self.QueryResident = "CREATE TABLE IF NOT EXISTS residents_admin (ID INT(11) not null AUTO_INCREMENT, LAST_NAME varchar(255) not null, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, ADDRESS varchar(255) not null, PLACE_OF_BIRTH varchar(255) not null, Contact_No varchar(255), IMAGE LONGBLOB, USERNAME varchar(255) not null, PASSWORD varchar(255) not null, PRIMARY KEY (ID))"
+        self.QueryResident = "CREATE TABLE IF NOT EXISTS residents_admin (ID INT(11) not null AUTO_INCREMENT, LAST_NAME varchar(255) not null, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, ADDRESS varchar(255) not null, PLACE_OF_BIRTH varchar(255) not null, Contact_No varchar(255), SECURITY_QUESTION varchar(255) not null, ANSWER varchar(255) not null, IMAGE LONGBLOB, USERNAME varchar(255) not null, PASSWORD varchar(255) not null, RFID varchar(255) not null, FINGER_TEMPLATE varchar(255) not null, PRIMARY KEY (ID))"
         self.cursor.execute(self.QueryResident)
         self.QueryResident_admin = "CREATE TABLE IF NOT EXISTS residents_db (ID INT(11) not null AUTO_INCREMENT, LAST_NAME varchar(255) not null, FIRST_NAME varchar(255) not null, MIDDLE_NAME varchar(255) not null, SEX varchar(255) not null, BIRTH_DATE date, CIVIL_STATUS varchar(255) not null, YEAR_OF_RESIDENCY int, ADDRESS varchar(255) not null, PLACE_OF_BIRTH varchar(255) not null, SECURITY_QUESTION varchar(255), ANSWER varchar(255), Contact_No varchar(255) not null, IMAGE LONGBLOB, RFID varchar(255) not null, FINGER_TEMPLATE varchar(255) DEFAULT '' not null, PRIMARY KEY (ID))"
         self.cursor.execute(self.QueryResident_admin)
@@ -37,6 +37,8 @@ class admin_system(Tk):
         self.cursor.execute(self.QueryResident_edit_form)
         self.QueryResident_report = "CREATE TABLE IF NOT EXISTS residents_transaction_db (NAME varchar(255) not null, CONTACT_NO varchar(255) not null, TIME_AND_DATE date, FORM_PRINTED varchar(255) not null, OR_NUMBER varchar(255) not null)"
         self.cursor.execute(self.QueryResident_report)
+        self.QueryResident_super_admin = "CREATE TABLE IF NOT EXISTS residents_transaction_db (NAME varchar(255) not null, CONTACT_NO varchar(255) not null, TIME_AND_DATE date, FORM_PRINTED varchar(255) not null, OR_NUMBER varchar(255) not null)"
+        self.cursor.execute(self.QueryResident_super_admin)
         
         self.login_frame = Frame(self)
         self.login_frame.pack(fill = "both", expand = 1)
