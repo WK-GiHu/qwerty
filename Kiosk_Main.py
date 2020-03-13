@@ -201,30 +201,30 @@ class Kiosk(tk.Tk):
         self.geometry("{}x{}".format(self.ws, self.hs))
         #self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
     
-    def on_fingerprint(self, event)
+    def on_fingerprint(self, event):
         fingerprint = FingerprintThread.template
         print('on_grant_access()  positionNumber={},  accuracyScore={}'
-             .format(fingerprint[0], fingerprint[1]))
-                positionNumber = fingerprint[0] 
+              .format(fingerprint[0], fingerprint[1]))
+
+        positionNumber = fingerprint[0] 
         accuracyScore = fingerprint[1] 
       
-        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber) 
-        FingerprintThread.result = self.cursor.fetchone()
-        print (FingerprintThread.result)
+        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+        event.result = self.cursor.fetchone()
+        
+        print (self.result) 
         if event.result: 
-            event.state = 1  # or 
-            self.on_grant_access(event)
+            self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
         else: 
             self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber) 
-            event.result = self.cursor.fetchone()
-            print (FingerprintThread.result)
-            if FingerprintThread.result:
-                event.state = 2
-                self.on_grant_access(event)
-            else: 
-                messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
-    
-    
+            event.result = self.cursor.fetchone() 
+            print (event.result) 
+            if event.result:
+                self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail') 
+            else:
+                messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
+
     def on_timeout(self, event):
         SplashScreen(self)
                   
