@@ -56,7 +56,7 @@ if __name__ == "__main__":
     def on_fingerprint(event):
       fingerprint = FingerprintThread.template
       print('on_grant_access()  positionNumber={},  accuracyScore={}'
-            .format, fingerprint[0], fingerprint[1])
+            .format(fingerprint[0], fingerprint[1]))
 
     root = tk.Tk()
     FingerprintThread(root)
