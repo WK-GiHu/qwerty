@@ -192,6 +192,7 @@ class Kiosk(tk.Tk):
         
         FingerprintThread(self)
         self.bind('<<FINGERPRINT>>', self.on_fingerprint)
+        
         RFIDThread(self, callback = self.on_grant_access)
         IdleCounter(self)
         self.bind('<<TIMEOUT>>', self.on_timeout)
@@ -202,81 +203,26 @@ class Kiosk(tk.Tk):
         #self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
     
     def on_fingerprint(self, event):
-        fingerprint = FingerprintThread.template
+        template = FingerprintThread.template
         print('on_grant_access()  positionNumber={},  accuracyScore={}'
-              .format(fingerprint[0], fingerprint[1]))
+              .format(template[0], template[1]))
 
-        positionNumber = fingerprint[0] 
-        accuracyScore = fingerprint[1] 
+        positionNumber = template[0] 
+        accuracyScore = template[1] 
       
-        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
         self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
         event.result = self.cursor.fetchone()
         
-        print (self.result) 
+        print (event.result) 
         if event.result: 
-            self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
+            event.state = 1
+            self.on_grant_access(event)
         else: 
             self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber) 
             event.result = self.cursor.fetchone() 
             print (event.result) 
             if event.result:
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail') 
+                event.state = 2
+                self.on_grant_access(event)
             else:
                 messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
-
-    def on_timeout(self, event):
-        SplashScreen(self)
-                  
-    def on_grant_access(self, event):
-        print('Kiosk.on_grant_access()')
-        if event.state <10:
-            self.details = event.result
-            self.firstn = self.details[3]
-            self.middlen = self.details[2]
-            self.lastn = self.details[1]
-            self.SEX = self.details[4]
-            self.dob = self.details[5]
-            self.civils = self.details[6]
-            self.year_resides = self.details[7]
-            self.address = self.details[8]
-            self.pob = self.details[9]
-            self.cn = self.details[10]
-            self.sq1 = self.details[11]
-            self.ans = self.details[12]
-            self.image = self.details[13]
-            self.rf = self.details [16]
-            self.age = self.calculate_age(self.dob)
-            print(self.age)
-            print ("Finger Thread")
-            print (self.details)
-            if event.state == 1:
-                self.choose_admin()
-            elif event.state == 2:
-                self.choose_user()            
-        else:
-            self.details = RFIDThread.result
-            self.firstn = self.details[3]
-            self.middlen = self.details[2]
-            self.lastn = self.details[1]
-            self.SEX = self.details[4]
-            self.dob = self.details[5]
-            self.civils = self.details[6]
-            self.year_resides = self.details[7]
-            self.address = self.details[8]
-            self.pob = self.details[9]
-            self.cn = self.details[10]
-            self.sq1 = self.details[11]
-            self.ans = self.details[12]
-            self.image = self.details[13]
-            self.rf = self.details [16]
-            self.age = self.calculate_age(self.dob)
-            print(self.age)
-            print ("RFID Thread")
-            if event.state == 11:
-                self.security_question()    
-            elif event.state == 12:
-                self.security_question()
-        
-        self.deiconify()
-            
