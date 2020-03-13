@@ -1,6 +1,5 @@
 from pyfingerprint.pyfingerprint import PyFingerprint
 import threading, time
-import tkinter as tk
 
 class FingerprintThread(threading.Thread):
     def __init__(self, app):
