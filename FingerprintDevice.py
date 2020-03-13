@@ -1,22 +1,17 @@
-import time
 from pyfingerprint.pyfingerprint import PyFingerprint
-import pymysql
 import threading, time
 import tkinter as tk
 
-
 class FingerprintThread(threading.Thread):
-    def __init__(self, parent):
+    def __init__(self, app):
         super().__init__(daemon = True)
         result = None
         self.template = None
+        self.app = app
         #self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
 
-    def run(self):        
-        #self.db = pymysql.connect(host = "192.168.1.9",port = 3306, user = "root",passwd = "justin",db= "thesis_main")
-        #self.cursor = self.db.cursor()
-        #self.db.autocommit(True)
+    def run(self):
         try:
             f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
 
@@ -36,7 +31,7 @@ class FingerprintThread(threading.Thread):
                 retry+=1
                 try:
                     while (f.readImage() == False):
-                        print('looping .readImage()')
+                        #print('looping .readImage()')
                         time.sleep(0.5)
                         
                         pass
@@ -56,22 +51,6 @@ class FingerprintThread(threading.Thread):
             self.template = f.searchTemplate()
             self.app.event_generate('<<FINGERPRINT>>', when='tail')
 
-            positionNumber = result[0]
-            accuracyScore = result[1]
-
-            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-            FingerprintThread.result = self.cursor.fetchone()
-            print (FingerprintThread.result)
-            if FingerprintThread.result:
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
-            else:
-                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                FingerprintThread.result = self.cursor.fetchone()
-                print (FingerprintThread.result)
-                if FingerprintThread.result:
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
-                else:
-                    messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
 
 if __name__ == "__main__":
     import tkinter as tk
