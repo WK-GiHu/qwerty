@@ -57,9 +57,9 @@ if __name__ == "__main__":
     import tkinter as tk
 
     def on_fingerprint(event):
-        fp.searchTemplate()
+        template = fp.searchTemplate()
         print('on_grant_access()  positionNumber={},  accuracyScore={}'
-              .format(fp.searchTemplate()[0], fp.searchTemplate()[1]))
+              .format(template[0], template[1]))
 
     root = tk.Tk()
     fp = FingerprintThread(root)
