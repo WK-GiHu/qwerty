@@ -6,6 +6,7 @@ class FingerprintThread(threading.Thread):
         super().__init__(daemon = True)
         #FingerprintThread.template = None
         self.app = app
+        self.continue = threading.Event()
         #self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
 
@@ -48,10 +49,14 @@ class FingerprintThread(threading.Thread):
                 ## Searchs template
             #FingerprintThread.template = f.searchTemplate()
             self.app.event_generate('<<FINGERPRINT>>', when='tail')
-    
+            self.continue.clear()
+            self.continue.wait()
+            
     def searchTemplate(self):
         self.f.convertImage(0x01)
-        return self.f.searchTemplate()
+        template = self.f.searchTemplate()
+        self.continue.set()
+        return template
 
 if __name__ == "__main__":
     import tkinter as tk
@@ -65,4 +70,3 @@ if __name__ == "__main__":
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
     root.mainloop()
-
