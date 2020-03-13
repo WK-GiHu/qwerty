@@ -190,7 +190,7 @@ class Kiosk(tk.Tk):
         self.imglabel = Label(self, image = self.img_background).place(x=0,y=0)
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
-        FingerprintThread(self, callback = self.on_grant_access)
+        FingerprintThread(self)
         self.bind('<<FINGERPRINT>>', self.on_fingerprint)
         RFIDThread(self, callback = self.on_grant_access)
         IdleCounter(self)
