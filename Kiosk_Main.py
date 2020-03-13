@@ -205,6 +205,25 @@ class Kiosk(tk.Tk):
         fingerprint = FingerprintThread.template
         print('on_grant_access()  positionNumber={},  accuracyScore={}'
              .format(fingerprint[0], fingerprint[1]))
+                positionNumber = fingerprint[0] 
+        accuracyScore = fingerprint[1] 
+      
+        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber) 
+        FingerprintThread.result = self.cursor.fetchone()
+        print (FingerprintThread.result)
+        if event.result: 
+            event.state = 1  # or 
+            self.on_grant_access(event)
+        else: 
+            self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber) 
+            event.result = self.cursor.fetchone()
+            print (FingerprintThread.result)
+            if FingerprintThread.result:
+                event.state = 2
+                self.on_grant_access(event)
+            else: 
+                messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
+    
     
     def on_timeout(self, event):
         SplashScreen(self)
