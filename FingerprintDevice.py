@@ -4,8 +4,7 @@ import threading, time
 class FingerprintThread(threading.Thread):
     def __init__(self, app):
         super().__init__(daemon = True)
-        result = None
-        self.template = None
+        FingerprintThread.template = None
         self.app = app
         #self.app.bind('<<GRANT_ACCESS>>', callback)
         self.start()
@@ -47,19 +46,20 @@ class FingerprintThread(threading.Thread):
             f.convertImage(0x01)
 
                 ## Searchs template
-            self.template = f.searchTemplate()
+            FingerprintThread.template = f.searchTemplate()
             self.app.event_generate('<<FINGERPRINT>>', when='tail')
 
 
 if __name__ == "__main__":
     import tkinter as tk
 
-    def on_grant_access(event):
-        print('on_grant_access()  positionNumber={},  accuracyScore={}'
-              .format, fp.fingerprint[0], fp.fingerprint[1])
+    def on_fingerprint(event):
+      fingerprint = FingerprintThread.template
+      print('on_grant_access()  positionNumber={},  accuracyScore={}'
+            .format, fingerprint[0], fingerprint[1])
 
     root = tk.Tk()
-    fp = FingerprintThread(root)
-    root.bind('<<FINGERPRINT>>', on_grant_access)
+    FingerprintThread(root)
+    root.bind('<<FINGERPRINT>>', on_fingerprint)
     root.mainloop()
 
