@@ -11,16 +11,16 @@ class FingerprintThread(threading.Thread):
 
     def run(self):
         try:
-            f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
+            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
 
-            if ( f.verifyPassword() == False ):
+            if ( self.f.verifyPassword() == False ):
                 raise ValueError('The given fingerprint sensor password is wrong!')
 
         except Exception as e:
             print('The fingerprint sensor could not be initialized!')
             print('Exception message: ' + str(e))
         
-        print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
+        print('Currently used templates: ' + str(self.f.getTemplateCount()) +'/'+ str(self.f.getStorageCapacity()))
 
         while True:
             retry = 0
@@ -28,7 +28,7 @@ class FingerprintThread(threading.Thread):
                 print('Waiting for finger...')
                 retry+=1
                 try:
-                    while (f.readImage() == False):
+                    while (self.f.readImage() == False):
                         #print('looping .readImage()')
                         time.sleep(0.5)
                         
@@ -50,8 +50,8 @@ class FingerprintThread(threading.Thread):
             self.app.event_generate('<<FINGERPRINT>>', when='tail')
     
     def searchTemplate(self):
-        f.convertImage(0x01)
-        return f.searchTemplate()
+        self.f.convertImage(0x01)
+        return self.f.searchTemplate()
 
 if __name__ == "__main__":
     import tkinter as tk
@@ -59,9 +59,10 @@ if __name__ == "__main__":
     def on_fingerprint(event):
         fp.searchTemplate()
         print('on_grant_access()  positionNumber={},  accuracyScore={}'
-              .format(fingerprint[0], fingerprint[1]))
+              .format(fp.searchTemplate()[0], fp.searchTemplate()[1]))
 
     root = tk.Tk()
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
     root.mainloop()
+
