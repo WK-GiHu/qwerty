@@ -5,7 +5,6 @@ SEARCH = 1
 REGISTER = 2
 
 class FingerprintThread(threading.Thread):
-    MODE = SEARCH
     template = None
     
     def __init__(self, app):
@@ -13,9 +12,17 @@ class FingerprintThread(threading.Thread):
         
         self.app = app
         self.f = None
+        self._mode = None
         self._continue = threading.Event()
-        self._continue.set()
+        
+        # Default mode SEARCH
+        self.set_mode(SEARCH)
+        
         self.start()
+    
+    def set_mode(self, mode):
+        self._mode = mode
+        self._continue.set()
         
     def delete_template(self, positionNumber):
         # wait readImage
@@ -29,12 +36,12 @@ class FingerprintThread(threading.Thread):
         # continue readImage
         self._continue.set()
         return b
-
+    
     def run(self):
         try:
-            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-            
-            if self.f.verifyPassword() == False:
+            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)            
+
+            if not self.f.verifyPassword():
                 raise ValueError('The given fingerprint sensor password is wrong!')
         
         except Exception as e:
@@ -42,13 +49,13 @@ class FingerprintThread(threading.Thread):
             print('Exception message: ' + str(e))
         
         print('Currently used templates: ' + str(self.f.getTemplateCount()) + '/' + str(self.f.getStorageCapacity()))
-
+        
         # REGISTER sequence
         sequence = 1
         
-        while True:
+        while True:  # mainloop forever
             retry = 0
-            while True:
+            while True:  # retry
                 print('Waiting for finger...')
                 retry += 1
                 try:
@@ -57,7 +64,7 @@ class FingerprintThread(threading.Thread):
                         self._continue.wait()
                         time.sleep(0.5)
                     break
-                    
+                
                 except Exception as e:
                     print('PyFingerprint:{}, try {} of 3'.format(e, retry))
                     if retry == 3:
@@ -65,34 +72,49 @@ class FingerprintThread(threading.Thread):
                     # delay 2 seconds before next try
                     time.sleep(2)
             # end while retry == 3
+
+            position_number = None
             
-            if FingerprintThread.MODE == SEARCH:
+            if self._mode == SEARCH:
                 self.f.convertImage(1)
                 FingerprintThread.template = self.f.searchTemplate()
-                self.app.event_generate('<<FINGERPRINT>>', when='tail', state=FingerprintThread.template[0])
-
-            elif FingerprintThread.MODE == REGISTER:
+                position_number = FingerprintThread.template[0]
+            
+            elif self._mode == REGISTER:
                 if sequence == 1:
                     self.f.convertImage(1)
                     FingerprintThread.template = self.f.searchTemplate()
-                    sequence += 1
+
+                    # Checks if finger is already enrolled
+                    positionNumber = FingerprintThread.template[0]
+                    if positionNumber < 0:
+                        # OK, no event, continue with sequence 2
+                        position_number = None
+                        sequence += 1
+                    else:
+                        # event state=-1 - finger allready enrolled
+                        position_number = -1
                 
                 elif sequence == 2:
                     self.f.convertImage(2)
                     if self.f.compareCharacteristics():
                         self.f.createTemplate()
                         position_number = self.f.storeTemplate()
-                        self._continue.clear()
-                        self._continue.wait()    
                     else:
-                        position_number = -1
-
-                    self.app.event_generate('<<FINGERPRINT>>', when='tail', state = position_number)
+                        # event state=-2 - .compareCharacteristics failed
+                        position_number = -2
                     
                     # Reset MODE
                     sequence = 1
-                    #FingerprintThread.MODE = SEARCH
-            
+                    
+            if position_number is not None:
+                self.app.event_generate('<<FINGERPRINT>>', when='tail', state=position_number)
+                
+                if self._mode == REGISTER:
+                    # wait until set_mode(...) is called
+                    self._continue.clear()
+                    self._continue.wait()
+
             # Delay before next finger scan
             time.sleep(2)
 
@@ -100,21 +122,35 @@ class FingerprintThread(threading.Thread):
 if __name__ == "__main__":
     import tkinter as tk
     
+    template_id = None
     
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
-    
+
+        if event.state >= 0:
+            global template_id
+            template_id = event.state
+            btn2.configure(text=btn2._text.format(template_id))
+
+    def on_register():  # test MODE REGISTER
+        global template_id
+        template_id = None
+        print('set mode REGISTER')
+        fp.set_mode(REGISTER)
+        
+    def on_delete():  # test delete_template
+        if template_id is not None:
+            print('delete_template({})'.format(template_id))
+            fp.delete_template(template_id)
 
     root = tk.Tk()
+    tk.Button(root, text='set_mode(REGISTER)', command=on_register).pack()
+    btn2 = tk.Button(root, text='', command=on_delete)
+    btn2._text = 'delete_template({})'
+    btn2.configure(text=btn2._text.format(template_id))
+    btn2.pack()
+    
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
-    
-    if 1:  # test MODE REGISTER
-        fp._continue.set()
-        print('on_register')
-        FingerprintThread.MODE = REGISTER
-    
-    if 0:  # test delete_template
-        fp.delete_template(10)
 
     root.mainloop()
