@@ -15,6 +15,8 @@ class FingerprintThread(threading.Thread):
         self.app = app
         self.f = None
         self._continue = threading.Event()
+        
+        self._continue.set()
         self.start()
         
     def delete_template(self, positionNumber):
@@ -53,7 +55,7 @@ class FingerprintThread(threading.Thread):
                 retry += 1
                 try:
                     while not self.f.readImage():
-                        # print('looping .readImage()')
+                        print('looping .readImage()')
                         self._continue.wait()
                         time.sleep(0.5)
                     break
