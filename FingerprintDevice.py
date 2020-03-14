@@ -22,7 +22,7 @@ class FingerprintThread(threading.Thread):
         self._continue.clear()
         time.sleep(0.5)
         
-        b = self.f.deleteTemplate(positionNumber)
+        b = self.f.deleteTemplate(str(positionNumber))
         if b:
             print('FingerprintThread:Template deleted!')
         
@@ -76,7 +76,7 @@ class FingerprintThread(threading.Thread):
                     self.f.convertImage(1)
                     FingerprintThread.template = self.f.searchTemplate()
                     sequence += 1
-    
+                
                 elif sequence == 2:
                     self.f.convertImage(2)
                     if self.f.compareCharacteristics():
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
     
-    if 1:  # test MODE REGISTER
+    if 0:  # test MODE REGISTER
         print('on_register')
         FingerprintThread.MODE = REGISTER
     
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
 
-    if 0:  # test delete_template
+    if 1:  # test delete_template
         fp.delete_template('<position number to delete>')
 
     root.mainloop()
