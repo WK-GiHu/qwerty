@@ -22,7 +22,7 @@ class FingerprintThread(threading.Thread):
         self._continue.clear()
         time.sleep(0.5)
         
-        b = self.f.deleteTemplate(str(positionNumber))
+        b = self.f.deleteTemplate(int(positionNumber))
         if b:
             print('FingerprintThread:Template deleted!')
         
@@ -112,6 +112,6 @@ if __name__ == "__main__":
     root.bind('<<FINGERPRINT>>', on_fingerprint)
 
     if 1:  # test delete_template
-        fp.delete_template('<position number to delete>')
+        fp.delete_template(10)
 
     root.mainloop()
