@@ -30,7 +30,7 @@ class FingerprintThread(threading.Thread):
                 retry+=1
                 try:
                     while (self.f.readImage() == False):
-                        print('looping .readImage()')
+                        #print('looping .readImage()')
                         time.sleep(0.5)
                         
                         pass
@@ -54,10 +54,10 @@ class FingerprintThread(threading.Thread):
             
     def searchTemplate(self):
         self.f.convertImage(0x01)
-        #template = self.f.searchTemplate()
-        print('_continue.set()')
-        #self._continue.set()
-        #return template
+        template = self.f.searchTemplate()
+        #print('_continue.set()')
+        self._continue.set()
+        return template
 
 if __name__ == "__main__":
     import tkinter as tk
@@ -71,4 +71,3 @@ if __name__ == "__main__":
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
     root.mainloop()
-
