@@ -53,9 +53,11 @@ class FingerprintThread(threading.Thread):
             self._continue.wait()
             
     def searchTemplate(self):
+        print('before convertImage(1)')
         self.f.convertImage(0x01)
+        print('before searchTemplate()')
         template = self.f.searchTemplate()
-        #print('_continue.set()')
+        print('_continue.set()')
         self._continue.set()
         return template
 
@@ -71,3 +73,4 @@ if __name__ == "__main__":
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
     root.mainloop()
+
