@@ -81,8 +81,9 @@ class FingerprintThread(threading.Thread):
                     self.f.convertImage(2)
                     if self.f.compareCharacteristics():
                         self.f.createTemplate()
-                        # ? characterics = str(self.f.downloadCharacteristics(0x01)).encode('utf-8')
                         position_number = self.f.storeTemplate()
+                        self._continue.clear()
+                        self._continue.wait()    
                     else:
                         position_number = -1
 
@@ -90,7 +91,7 @@ class FingerprintThread(threading.Thread):
                     
                     # Reset MODE
                     sequence = 1
-                    FingerprintThread.MODE = SEARCH
+                    #FingerprintThread.MODE = SEARCH
             
             # Delay before next finger scan
             time.sleep(2)
@@ -103,15 +104,17 @@ if __name__ == "__main__":
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
     
-    if 0:  # test MODE REGISTER
-        print('on_register')
-        FingerprintThread.MODE = REGISTER
-    
+
     root = tk.Tk()
     fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
-
-    if 1:  # test delete_template
+    
+    if 1:  # test MODE REGISTER
+        fp._continue.set()
+        print('on_register')
+        FingerprintThread.MODE = REGISTER
+    
+    if 0:  # test delete_template
         fp.delete_template(10)
 
     root.mainloop()
