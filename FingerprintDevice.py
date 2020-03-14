@@ -4,7 +4,6 @@ import threading, time
 SEARCH = 1
 REGISTER = 2
 
-
 class FingerprintThread(threading.Thread):
     template = None
     
@@ -40,8 +39,8 @@ class FingerprintThread(threading.Thread):
     
     def run(self):
         try:
-            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-            
+            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)            
+
             if not self.f.verifyPassword():
                 raise ValueError('The given fingerprint sensor password is wrong!')
         
@@ -61,7 +60,7 @@ class FingerprintThread(threading.Thread):
                 retry += 1
                 try:
                     while not self.f.readImage():
-                        # print('looping .readImage()')
+                        print('looping .readImage()')
                         self._continue.wait()
                         time.sleep(0.5)
                     break
