@@ -104,9 +104,14 @@ if __name__ == "__main__":
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
     
+    if 0:  # test MODE REGISTER
+        FingerprintThread.MODE = REGISTER
     
     root = tk.Tk()
-    FingerprintThread(root)
-    # FingerprintThread.MODE = REGISTER
+    fp = FingerprintThread(root)
     root.bind('<<FINGERPRINT>>', on_fingerprint)
+
+    if 0:  # test delete_template
+        fp.delete_template('<position number to delete>')
+
     root.mainloop()
