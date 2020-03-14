@@ -34,7 +34,7 @@ class FingerprintThread(threading.Thread):
         try:
             self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
             
-            if self.f.verifyPassword():
+            if self.f.verifyPassword() == False:
                 raise ValueError('The given fingerprint sensor password is wrong!')
         
         except Exception as e:
