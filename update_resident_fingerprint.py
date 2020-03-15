@@ -10,7 +10,6 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import pymysql
 
-
 class Update_residents(Toplevel):
     def __init__(self, app):
         super().__init__(app)
@@ -58,7 +57,7 @@ class Update_residents(Toplevel):
 
         self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
-        self.bind('<<FINGERPRINT>>', self.on_fingerprint) 
+        self.app.bind('<<FINGERPRINT>>', self.on_fingerprint) 
         self.bind("<Destroy>", self.on_destroy)
         
         self.update_finger_button = Button(self.bottom, text = "Update Fingerprint", bg = "white", command = self.Update_fingerprint)
@@ -79,6 +78,7 @@ class Update_residents(Toplevel):
         self.tree.heading(10, text="PLACE OF BIRTH")
         self.tree.heading(11, text="CONTACT NUMBER")
         self.tree.heading(12, text="FINGER TEMPLATE")
+        
         self.tree.column(1, width = 100)
         self.tree.column(2, width = 115)
         self.tree.column(3, width = 115)
@@ -155,9 +155,9 @@ class Update_residents(Toplevel):
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
-        self.app.bind('<<FINGERPRINT>>', self.app.on_fingerprint)
+        self.app.bind('<<FINGERPRINT>>', self.on_fingerprint)
         print('set mode SEARCH')
-        self.app.fp.set_mode(FingerprintDevice.SEARCH)
+        self.app.set_mode(FingerprintThread.SEARCH)
         
     def search_data(self):
         searching = str(self.search_bar.get())
