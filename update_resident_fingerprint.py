@@ -4,14 +4,14 @@ from tkinter import messagebox
 import time
 from PIL import Image, ImageTk
 from datetime import datetime, date
-from pyfingerprint.pyfingerprint import PyFingerprint
+from FingerprintDevice_v2 import FingerprintThread
 from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import pymysql
 
 class Update_residents(Toplevel):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
             
         self.attributes("-fullscreen", True)
@@ -55,7 +55,9 @@ class Update_residents(Toplevel):
 
         self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12,13,14), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
-
+        
+        root.bind("<Destroy>", self.on_destroy)
+        
         self.update_finger_button = Button(self.bottom, text = "Update Fingerprint", bg = "white", command = self.Update_fingerprint)
         self.update_finger_button.grid(row = 0, column = 3)
 
@@ -96,6 +98,15 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
+    
+    def on_fingerprint(event): 
+        print('on_fingerprint()  positionNumber={}'.format(event.state)) 
+        if event.state >= 0:
+            template_id = event.state
+        elif event.state =-1:
+            messagebox.showerror("Notice!", "Fingerprint already registered")
+        elif event.state =-2:
+            messagebnox.showerror("Notice!", "Fingerprint does not match")
 
     def Update_fingerprint(self):
         self.update()
@@ -125,135 +136,18 @@ class Update_residents(Toplevel):
         curItem = self.tree.focus()
         inter_var=self.tree.item(curItem)
         list_values=inter_var['values']
-        print(list_values)# check the value of a dictionary
-        if list_values[12] !='':
-            try:
-                f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-
-                if ( f.verifyPassword() == False ):
-                    raise ValueError('The given fingerprint sensor password is wrong!')
-
-            except Exception as e:
-                print('The fingerprint sensor could not be initialized!')
-                print('Exception message: ' + str(e))
+        print(list_values)# checks the value of a dictionary
+        if is_registered_template:
+            print('delete_template({})'.format(template_id))
+            fp.delete_template(template_id)
         
-            ## Gets some sensor information
-            print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
+        print('set mode REGISTER')
+        fp.set_mode(REGISTER)
         
-            ## Tries to delete the template of the finger
-            positionNumber = list_values[12]
-            positionNumber = int(positionNumber)
-            print(positionNumber)
-            if (f.deleteTemplate(positionNumber) == True):
-                print('Template deleted!')
-            try:
-                f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-
-                if ( f.verifyPassword() == False ):
-                    raise ValueError('The given fingerprint sensor password is wrong!')
-
-            except Exception as e:
-                print('The fingerprint sensor could not be initialized!')
-                print('Exception message: ' + str(e))
-
-            ## Gets some sensor information
-            print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-
-            ## Tries to enroll new finger
-                ## Wait that finger is read
-            while ( f.readImage() == False ):
-                pass
-
-                ## Converts read image to characteristics and stores it in charbuffer 1
-            f.convertImage(0x01)
-
-                ## Checks if finger is already enrolled
-            result = f.searchTemplate()
-            positionNumber = result[0]
-                
-            if ( positionNumber >= 0 ):
-                messagebox.showinfo("Notice", "Fingerprint is already registered\n please try again", parent = self)
-                    
-            time.sleep(2)
-
-
-                ## Wait that finger is read again
-            while ( f.readImage() == False ):
-                pass
-
-                ## Converts read image to characteristics and stores it in charbuffer 2
-            f.convertImage(0x02)
-
-                ## Compares the charbuffers
-            if ( f.compareCharacteristics() == 0 ):
-                messagebox.showerror("Error", "Finger do not match\n Please try again", parent = self)          
-                
-                ## Creates a template
-            else:
-                f.createTemplate()
-                characterics = str(f.downloadCharacteristics(0x01)).encode('utf-8')
-                ## Saves template at new position number
-                positionNumber = f.storeTemplate()
-                self.cursor.execute("UPDATE residents_db SET FINGER_TEMPLATE = %s WHERE ID = %s", (positionNumber, list_values[0]))
-                self.db.commit()
-                messagebox.showinfo("Success", "Fingerprint successfully updated", parent = self)
-                self.update_finger_frame.destroy()
-                self.treeview_frame_residents.pack(expand = 1, fill = "both")
-
-        else:
-            try:
-                f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-
-                if ( f.verifyPassword() == False ):
-                    raise ValueError('The given fingerprint sensor password is wrong!')
-
-            except Exception as e:
-                print('The fingerprint sensor could not be initialized!')
-                print('Exception message: ' + str(e))
-
-            ## Gets some sensor information
-            print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-
-                ## Wait that finger is read
-            while ( f.readImage() == False ):
-                pass
-
-                ## Converts read image to characteristics and stores it in charbuffer 1
-            f.convertImage(0x01)
-
-                ## Checks if finger is already enrolled
-            result = f.searchTemplate()
-            positionNumber = result[0] 
-
-            if ( positionNumber >= 0 ):
-                messagebox.showinfo("Notice", "Fingerprint is already registered\n please try again", parent = self)
-                    
-            time.sleep(2)
-
-                ## Wait that finger is read again
-            while ( f.readImage() == False ):
-                pass
-
-                ## Converts read image to characteristics and stores it in charbuffer 2
-            f.convertImage(0x02)
-
-                ## Compares the charbuffers
-            if ( f.compareCharacteristics() == 0 ):
-                messagebox.showerror("Error", "Finger do not match\n Please try again", parent = self)
-                
-            ## Creates a template
-            else:
-                f.createTemplate()
-                characterics = str(f.downloadCharacteristics(0x01)).encode('utf-8')
-                    ## Saves template at new position number
-                positionNumber = f.storeTemplate()
-                self.cursor.execute("UPDATE residents_db SET FINGER_TEMPLATE = %s WHERE ID = %s", (positionNumber, str(list_values[0])))
-                self.db.commit()
-                messagebox.showinfo("Success", "Fingerprint successfully updated", parent = self)
-                self.update_finger_frame.destroy()
-                self.treeview_frame_residents.pack(expand = 1, fill = "both")
-        
-            
+    def on_destroy(self, event):
+        print('set mode SEARCH')
+        self.app.fp.set_mode(FingerprintDevice.SEARCH)
+    
     def search_data(self):
         searching = str(self.search_bar.get())
         
