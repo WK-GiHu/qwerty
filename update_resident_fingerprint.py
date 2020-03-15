@@ -36,7 +36,6 @@ class Update_residents(Toplevel):
         self.imglabel_tree_view = Label(self.treeview_frame_residents, image = self.img_background_tree_view)
         self.imglabel_tree_view.place(x=0,y=0)
         
-
         self.top = Frame(self.treeview_frame_residents, bg = "white")
         self.top.grid(row = 0, column = 0, pady = 5)
         
@@ -155,7 +154,7 @@ class Update_residents(Toplevel):
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
-        self.app.bind('<<FINGERPRINT>>', self.on_fingerprint)
+        self.app.bind('<<FINGERPRINT>>', self.app.on_fingerprint)
         print('set mode SEARCH')
         self.app.fp.set_mode(FingerprintDevice.SEARCH)
         
