@@ -136,16 +136,16 @@ class Kiosk(tk.Tk):
         #self.T_printer = Usb(0x0fe6, 0x811e, 98, 0x82, 0x02)
     
     def on_fingerprint(self, event):
-        template = FingerprintThread.template
-        print('on_grant_access()  positionNumber={},  accuracyScore={}'
-              .format(template[0], template[1]))
+        print('on_fingerprint()  template_id={}'.format(event.state)) 
+        if event.state >= 0:
+            template_id = event.state
+            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+            event.result = self.cursor.fetchone()
+        elif event.state ==-1:
+            messagebox.showerror("Notice!", "Fingerprint already registered")
+        elif event.state ==-2:
+            messagebnox.showerror("Notice!", "Fingerprint does not match")
 
-        positionNumber = template[0] 
-        accuracyScore = template[1] 
-      
-        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
-        event.result = self.cursor.fetchone()
-        
         print (event.result) 
         if event.result: 
             event.state = 1
@@ -220,4 +220,3 @@ class Kiosk(tk.Tk):
                     self.security_question()
         
         self.deiconify()
-            
