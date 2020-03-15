@@ -13,7 +13,7 @@ import pymysql
 
 class Update_residents(Toplevel):
     def __init__(self, app):
-        super().__init__()
+        super().__init__(app)
         
         self.app = app
         
@@ -23,7 +23,7 @@ class Update_residents(Toplevel):
         self.db.autocommit(True)
         
         self.cursor = self.db.cursor()
-                        
+
         self.treeview_frame_residents = Frame(self)
         self.treeview_frame_residents.pack(expand = 1, fill = "both")
                         
@@ -59,7 +59,7 @@ class Update_residents(Toplevel):
         self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
         
-        root.bind("<Destroy>", self.on_destroy)
+        self.bind("<Destroy>", self.on_destroy)
         
         self.update_finger_button = Button(self.bottom, text = "Update Fingerprint", bg = "white", command = self.Update_fingerprint)
         self.update_finger_button.grid(row = 0, column = 3)
@@ -114,7 +114,10 @@ class Update_residents(Toplevel):
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
     
-    def on_fingerprint(event): 
+    def on_fingerprint(event):
+        curItem = self.tree.focus()
+        inter_var=self.tree.item(curItem)
+        list_values=inter_var['values']
         print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             template_id = event.state
@@ -151,13 +154,16 @@ class Update_residents(Toplevel):
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
             
             if list_values[15] != "":
+                # .delete template ID
                 print('delete_template({})'.format(template_id))
                 fp.delete_template(template_id)
-            else:
-                print('set mode REGISTER')
-                fp.set_mode(REGISTER)
+                # Change or continue to REGISTER
+                
+            print('set mode REGISTER')
+            fp.set_mode(REGISTER)
             
     def on_destroy(self, event):
+        # Change back to continius SEARCH mode
         print('set mode SEARCH')
         self.app.fp.set_mode(FingerprintDevice.SEARCH)
         
@@ -189,6 +195,6 @@ class Update_residents(Toplevel):
 
 if __name__== "__main__":
     root = Tk()
-    fp = FingerprintThread(root)
     Update_residents(root)
+    self.fp = FingerprintThread(self)
     root.mainloop()
