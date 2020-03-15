@@ -58,7 +58,7 @@ class Update_residents(Toplevel):
 
         self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
-        
+        self.bind('<<FINGERPRINT>>', self.on_fingerprint) 
         self.bind("<Destroy>", self.on_destroy)
         
         self.update_finger_button = Button(self.bottom, text = "Update Fingerprint", bg = "white", command = self.Update_fingerprint)
@@ -155,7 +155,7 @@ class Update_residents(Toplevel):
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
-        print("window destroyed")
+        self.app.bind('<<FINGERPRINT>>', self.app.on_fingerprint)
         print('set mode SEARCH')
         self.app.fp.set_mode(FingerprintDevice.SEARCH)
         
