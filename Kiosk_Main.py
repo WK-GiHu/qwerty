@@ -155,8 +155,8 @@ class Kiosk(tk.Tk):
                 if event.result:
                     event.state = 2
                     return self.on_grant_access(event)
-                
-            messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
+               
+        messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
 
     def on_timeout(self, event):
         SplashScreen(self)
