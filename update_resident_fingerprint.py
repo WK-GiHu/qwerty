@@ -10,6 +10,7 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import pymysql
 
+
 class Update_residents(Toplevel):
     def __init__(self, app):
         super().__init__()
@@ -17,7 +18,7 @@ class Update_residents(Toplevel):
         self.app = app
         
         self.attributes("-fullscreen", True)
-        self.db = pymysql.connect(host = "192.168.1.9",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
+        self.db = pymysql.connect(host = "192.168.1.9",port = 3306, user = "root",passwd = "justin",db= "thesis_main")
 
         self.db.autocommit(True)
         
@@ -55,7 +56,7 @@ class Update_residents(Toplevel):
         self.reset_button = Button(self.top, text = "refresh", bg = "white", command = self.reset_data)
         self.reset_button.grid(row = 0, column = 3)
 
-        self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12,13,14), height = 48, show = "headings")
+        self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
         
         root.bind("<Destroy>", self.on_destroy)
@@ -67,15 +68,21 @@ class Update_residents(Toplevel):
         self.back_button.grid(row = 0, column = 5)
                 
         self.tree.heading(1, text="ID")
-        self.tree.heading(2, text="First_Name")
-        self.tree.heading(3, text="Middle_Name")
-        self.tree.heading(4, text="Last_Name")
-        self.tree.heading(5, text="Sex")
-        self.tree.heading(6, text="Birth_Date")
-        self.tree.heading(7, text="Civil_Status")
-        self.tree.heading(8, text="Date_of_Residency")
+        self.tree.heading(2, text="LAST NAME")
+        self.tree.heading(3, text="FIRST NAME")
+        self.tree.heading(4, text="MIDDLE NAME")
+        self.tree.heading(5, text="SEX")
+        self.tree.heading(6, text="BIRTH DATE")
+        self.tree.heading(7, text="CIVIL_STATUS")
+        self.tree.heading(8, text="YEAR OF RESIDENCY")
         self.tree.heading(9, text="ADDRESS")
-        self.tree.heading(10, text="Place_of_Birth")
+        self.tree.heading(10, text="PLACE OF BIRTH")
+        self.tree.heading(11, text="SECURITY QUESTION")
+        self.tree.heading(12, text="ANSWER")
+        self.tree.heading(13, text="CONTACT NUMBER")
+        self.tree.heading(14, text="IMAGE")
+        self.tree.heading(15, text="RFID")
+        self.tree.heading(16, text="FINGER TEMPLATE")
         
         self.tree.column(1, width = 100)
         self.tree.column(2, width = 115)
@@ -86,7 +93,13 @@ class Update_residents(Toplevel):
         self.tree.column(7, width = 115)
         self.tree.column(8, width = 150)
         self.tree.column(9, width = 150)
-        self.tree.column(10, width = 225)
+        self.tree.column(10, width = 50)
+        self.tree.column(11, width = 50)
+        self.tree.column(12, width = 50)
+        self.tree.column(13, width = 50)
+        self.tree.column(14, width = 50)
+        self.tree.column(15, width = 50)
+        self.tree.column(16, width = 50)
     
         self.scrolly = Scrollbar(self.treeview_frame_residents, orient="vertical", command=self.tree.yview)
         self.scrolly.grid(row = 1, column = 1, sticky = "nesw")
@@ -120,6 +133,7 @@ class Update_residents(Toplevel):
         curItem = self.tree.focus()
         inter_var=self.tree.item(curItem)
         list_values=inter_var['values']
+        print(list_values)
         if list_values == "":
             messagebox.showerror("Error", "Please select a row", parent = self)
         else:
@@ -136,20 +150,12 @@ class Update_residents(Toplevel):
             self.Label_update = Label(self.update_finger_frame, image = self.img_update_background_finger_resident, width = self.ws, height = self.hs)
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
             
-            self.Label_update.bind('<Enter>', self.Updated_fingerprint)
-            
-    def Updated_fingerprint(self, event):
-        self.update()
-        curItem = self.tree.focus()
-        inter_var=self.tree.item(curItem)
-        list_values=inter_var['values']
-        print(list_values)# checks the value of a dictionary
-        if list_values[15] != "":
-            print('delete_template({})'.format(template_id))
-            fp.delete_template(template_id)
-        else:
-            print('set mode REGISTER')
-            fp.set_mode(REGISTER)
+            if list_values[15] != "":
+                print('delete_template({})'.format(template_id))
+                fp.delete_template(template_id)
+            else:
+                print('set mode REGISTER')
+                fp.set_mode(REGISTER)
             
     def on_destroy(self, event):
         print('set mode SEARCH')
@@ -182,6 +188,7 @@ class Update_residents(Toplevel):
             self.tree.insert('', 'end', values=(data))
 
 if __name__== "__main__":
-    Update_residents().mainloop()
-    
-    
+    root = Tk()
+    fp = FingerprintThread(root)
+    Update_residents(root)
+    root.mainloop()
