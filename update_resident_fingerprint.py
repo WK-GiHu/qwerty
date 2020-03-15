@@ -100,12 +100,12 @@ class Update_residents(Toplevel):
             self.tree.insert('', 'end', values=(data))
     
     def on_fingerprint(event): 
-        print('on_fingerprint()  positionNumber={}'.format(event.state)) 
+        print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             template_id = event.state
-        elif event.state =-1:
+        elif event.state ==-1:
             messagebox.showerror("Notice!", "Fingerprint already registered")
-        elif event.state =-2:
+        elif event.state ==-2:
             messagebnox.showerror("Notice!", "Fingerprint does not match")
 
     def Update_fingerprint(self):
@@ -176,3 +176,4 @@ class Update_residents(Toplevel):
 
 if __name__== "__main__":
     Update_residents().mainloop()
+    
