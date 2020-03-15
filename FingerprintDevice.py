@@ -126,7 +126,7 @@ if __name__ == "__main__":
     
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
-
+        
         if event.state >= 0:
             global template_id
             template_id = event.state
