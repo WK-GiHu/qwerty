@@ -105,8 +105,8 @@ class Update_residents(Toplevel):
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
     
-    def on_fingerprint(event):
-        print('on_fingerprint()  template_id={}'.format(event.state)) 
+    def on_fingerprint(self, event):
+        print('REGISTER on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             curItem = self.tree.focus()
             inter_var=self.tree.item(curItem)
@@ -184,9 +184,3 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
-
-if __name__== "__main__":
-    root = Tk()
-    Update_residents(root)
-    fp = FingerprintThread()
-    root.mainloop()
