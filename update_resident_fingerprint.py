@@ -181,7 +181,7 @@ class Update_residents(Toplevel):
 
     def reset_data(self):
         self.tree.delete(*self.tree.get_children())
-        self.cursor.execute("SELECT * FROM residents_db")
+        self.cursor.execute("SELECT ID, LAST_NAME, FIRST_NAME, MIDDLE_NAME, SEX, BIRTH_DATE, CIVIL_STATUS, YEAR_OF_RESIDENCY, ADDRESS, PLACE_OF_BIRTH, Contact_No, FINGER_TEMPLATE FROM residents_db")
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
