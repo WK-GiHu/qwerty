@@ -144,20 +144,20 @@ class Update_residents(Toplevel):
             self.Label_update = Label(self.update_finger_frame, image = self.img_update_background_finger_resident, width = self.ws, height = self.hs)
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
             
-            if list_values[15] != "":
+            if list_values[12] != "":
                 # .delete template ID
                 print('delete_template({})'.format(template_id))
-                fp.delete_template(template_id)
+                self.app.fp.delete_template(template_id)
                 # Change or continue to REGISTER
-                
+            
             print('set mode REGISTER')
-            fp.set_mode(REGISTER)
+            self.app.fp.set_mode(REGISTER)
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
         self.app.bind('<<FINGERPRINT>>', self.on_fingerprint)
         print('set mode SEARCH')
-        self.app.set_mode(FingerprintThread.SEARCH)
+        self.app.fp.set_mode(SEARCH)
         
     def search_data(self):
         searching = str(self.search_bar.get())
@@ -184,7 +184,6 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
-
 if __name__== "__main__":
     root = Tk()
     Update_residents(root)
