@@ -139,13 +139,8 @@ class Kiosk(tk.Tk):
         print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             template_id = event.state
-            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
-            event.result = self.cursor.fetchone()
-        elif event.state ==-1:
-            messagebox.showerror("Notice!", "Fingerprint already registered")
-        elif event.state ==-2:
-            messagebnox.showerror("Notice!", "Fingerprint does not match")
-
+        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
+        event.result = self.cursor.fetchone()
         print (event.result) 
         if event.result: 
             event.state = 1
@@ -220,3 +215,4 @@ class Kiosk(tk.Tk):
                     self.security_question()
         
         self.deiconify()
+        
