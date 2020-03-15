@@ -151,13 +151,13 @@ class Update_residents(Toplevel):
                 # Change or continue to REGISTER
             
             print('set mode REGISTER')
-            self.app.fp.set_mode(REGISTER)
+            self.app.fp.set_mode(FingerprintDevice.REGISTER)
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
         self.app.bind('<<FINGERPRINT>>', self.on_fingerprint)
         print('set mode SEARCH')
-        self.app.fp.set_mode(SEARCH)
+        self.app.fp.set_mode(FingerprintDevice.SEARCH)
         
     def search_data(self):
         searching = str(self.search_bar.get())
@@ -184,6 +184,7 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
+
 if __name__== "__main__":
     root = Tk()
     Update_residents(root)
