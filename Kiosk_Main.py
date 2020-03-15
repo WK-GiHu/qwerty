@@ -8,6 +8,9 @@ import datetime
 from FingerprintDevice import FingerprintThread
 from VKeyboard import VKeyboard
 
+import update_residents
+import update_admins
+
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__(daemon = True)
@@ -216,3 +219,9 @@ class Kiosk(tk.Tk):
         
         self.deiconify()
             
+#=============================update module for residents===========================#    
+    def Update_Residents(self):
+        update_residents.Update_residents()
+#=============================update module for admin===========================#    
+    def Update_Admins(self):
+        update_admins.Update_admins()
