@@ -139,21 +139,21 @@ class Kiosk(tk.Tk):
         print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             template_id = event.state
-        self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", positionNumber)
-        event.result = self.cursor.fetchone()
-        print (event.result) 
-        if event.result: 
-            event.state = 1
-            self.on_grant_access(event)
-        else: 
-            self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber) 
-            event.result = self.cursor.fetchone() 
+            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s", template_id)
+            event.result = self.cursor.fetchone()
             print (event.result) 
-            if event.result:
-                event.state = 2
-                self.on_grant_access(event)
-            else:
-                messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
+            if event.result: 
+                event.state = 1
+                return self.on_grant_access(event)
+            else: 
+                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", template_id) 
+                event.result = self.cursor.fetchone() 
+                print (event.result) 
+                if event.result:
+                    event.state = 2
+                    return self.on_grant_access(event)
+                
+            messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
 
     def on_timeout(self, event):
         SplashScreen(self)
@@ -215,4 +215,4 @@ class Kiosk(tk.Tk):
                     self.security_question()
         
         self.deiconify()
-        
+            
