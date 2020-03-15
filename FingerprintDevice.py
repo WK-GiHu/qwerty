@@ -4,6 +4,7 @@ import threading, time
 SEARCH = 1
 REGISTER = 2
 
+
 class FingerprintThread(threading.Thread):
     template = None
     
@@ -13,17 +14,28 @@ class FingerprintThread(threading.Thread):
         self.app = app
         self.f = None
         self._mode = None
+        self._bind_funcid = None
         self._continue = threading.Event()
         
         # Default mode SEARCH
-        self.set_mode(SEARCH)
+        self._set_mode(SEARCH)
         
         self.start()
     
-    def set_mode(self, mode):
+    def bind(self, mode, callback):
+        mode = {'SEARCH': SEARCH, 'REGISTER': REGISTER}.get(mode, None)
+        self._set_mode(mode)
+        self._bind_funcid = self.app.bind('<<FINGERPRINT>>', callback)
+        
+    def unbind(self):
+        self.app.unbind('<<FINGERPRINT>>', self._bind_funcid)
+        self._bind_funcid = None
+        self._mode = SEARCH
+
+    def _set_mode(self, mode):
         self._mode = mode
         self._continue.set()
-        
+    
     def delete_template(self, positionNumber):
         # wait readImage
         self._continue.clear()
@@ -39,8 +51,8 @@ class FingerprintThread(threading.Thread):
     
     def run(self):
         try:
-            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)            
-
+            self.f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
+            
             if not self.f.verifyPassword():
                 raise ValueError('The given fingerprint sensor password is wrong!')
         
@@ -72,7 +84,7 @@ class FingerprintThread(threading.Thread):
                     # delay 2 seconds before next try
                     time.sleep(2)
             # end while retry == 3
-
+            
             position_number = None
             
             if self._mode == SEARCH:
@@ -84,7 +96,7 @@ class FingerprintThread(threading.Thread):
                 if sequence == 1:
                     self.f.convertImage(1)
                     FingerprintThread.template = self.f.searchTemplate()
-
+                    
                     # Checks if finger is already enrolled
                     positionNumber = FingerprintThread.template[0]
                     if positionNumber < 0:
@@ -106,7 +118,7 @@ class FingerprintThread(threading.Thread):
                     
                     # Reset MODE
                     sequence = 1
-                    
+            
             if position_number is not None:
                 self.app.event_generate('<<FINGERPRINT>>', when='tail', state=position_number)
                 
@@ -114,7 +126,7 @@ class FingerprintThread(threading.Thread):
                     # wait until set_mode(...) is called
                     self._continue.clear()
                     self._continue.wait()
-
+            
             # Delay before next finger scan
             time.sleep(2)
 
@@ -124,6 +136,7 @@ if __name__ == "__main__":
     
     template_id = None
     
+    
     def on_fingerprint(event):
         print('on_fingerprint()  positionNumber={}'.format(event.state))
         
@@ -131,26 +144,29 @@ if __name__ == "__main__":
             global template_id
             template_id = event.state
             btn2.configure(text=btn2._text.format(template_id))
-
+    
+    
     def on_register():  # test MODE REGISTER
         global template_id
         template_id = None
-        print('set mode REGISTER')
-        fp.set_mode(REGISTER)
-        
+        print('bind REGISTER')
+        fp.bind('REGISTER', on_fingerprint)
+    
+    
     def on_delete():  # test delete_template
         if template_id is not None:
             print('delete_template({})'.format(template_id))
             fp.delete_template(template_id)
-
+    
+    
     root = tk.Tk()
-    tk.Button(root, text='set_mode(REGISTER)', command=on_register).pack()
+    tk.Button(root, text='bind(REGISTER)', command=on_register).pack()
     btn2 = tk.Button(root, text='', command=on_delete)
     btn2._text = 'delete_template({})'
     btn2.configure(text=btn2._text.format(template_id))
     btn2.pack()
     
     fp = FingerprintThread(root)
-    root.bind('<<FINGERPRINT>>', on_fingerprint)
-
+    fp.bind('SEARCH', on_fingerprint)
+    
     root.mainloop()
