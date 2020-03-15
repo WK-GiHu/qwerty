@@ -56,7 +56,7 @@ class Update_residents(Toplevel):
         self.reset_button = Button(self.top, text = "refresh", bg = "white", command = self.reset_data)
         self.reset_button.grid(row = 0, column = 3)
 
-        self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), height = 48, show = "headings")
+        self.tree = Treeview(self.treeview_frame_residents,selectmode="browse", columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 48, show = "headings")
         self.tree.grid(row = 1, column = 0)
         
         self.bind("<Destroy>", self.on_destroy)
@@ -77,13 +77,8 @@ class Update_residents(Toplevel):
         self.tree.heading(8, text="YEAR OF RESIDENCY")
         self.tree.heading(9, text="ADDRESS")
         self.tree.heading(10, text="PLACE OF BIRTH")
-        self.tree.heading(11, text="SECURITY QUESTION")
-        self.tree.heading(12, text="ANSWER")
-        self.tree.heading(13, text="CONTACT NUMBER")
-        self.tree.heading(14, text="IMAGE")
-        self.tree.heading(15, text="RFID")
-        self.tree.heading(16, text="FINGER TEMPLATE")
-        
+        self.tree.heading(11, text="CONTACT NUMBER")
+        self.tree.heading(12, text="FINGER TEMPLATE")
         self.tree.column(1, width = 100)
         self.tree.column(2, width = 115)
         self.tree.column(3, width = 115)
@@ -96,11 +91,7 @@ class Update_residents(Toplevel):
         self.tree.column(10, width = 50)
         self.tree.column(11, width = 50)
         self.tree.column(12, width = 50)
-        self.tree.column(13, width = 50)
-        self.tree.column(14, width = 50)
-        self.tree.column(15, width = 50)
-        self.tree.column(16, width = 50)
-    
+        
         self.scrolly = Scrollbar(self.treeview_frame_residents, orient="vertical", command=self.tree.yview)
         self.scrolly.grid(row = 1, column = 1, sticky = "nesw")
         self.scrollx = Scrollbar(self.treeview_frame_residents, orient="horizontal", command=self.tree.xview)
@@ -108,18 +99,18 @@ class Update_residents(Toplevel):
              
         self.tree.configure(yscrollcommand=self.scrolly.set)
         self.tree.configure(xscrollcommand=self.scrollx.set)
-
-        self.cursor.execute("SELECT * FROM residents_db")
+        
+        self.cursor.execute("SELECT ID, LAST_NAME, FIRST_NAME, MIDDLE_NAME, SEX, BIRTH_DATE, CIVIL_STATUS, YEAR_OF_RESIDENCY, ADDRESS, PLACE_OF_BIRTH, Contact_No, FINGER_TEMPLATE FROM residents_db")
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
     
     def on_fingerprint(event):
-        curItem = self.tree.focus()
-        inter_var=self.tree.item(curItem)
-        list_values=inter_var['values']
         print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
+            curItem = self.tree.focus()
+            inter_var=self.tree.item(curItem)
+            list_values=inter_var['values']
             template_id = event.state
             self.cursor.execute("UPDATE residents_db SET FINGER_TEMPLATE = %s WHERE ID = %s", (template_id, list_values[0]))
             self.db.commit()
@@ -164,6 +155,7 @@ class Update_residents(Toplevel):
             
     def on_destroy(self, event):
         # Change back to continius SEARCH mode
+        print("window destroyed")
         print('set mode SEARCH')
         self.app.fp.set_mode(FingerprintDevice.SEARCH)
         
@@ -196,5 +188,5 @@ class Update_residents(Toplevel):
 if __name__== "__main__":
     root = Tk()
     Update_residents(root)
-    self.fp = FingerprintThread(self)
+    fp = FingerprintThread()
     root.mainloop()
