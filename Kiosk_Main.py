@@ -221,7 +221,7 @@ class Kiosk(tk.Tk):
             
 #=============================update module for residents===========================#    
     def Update_Residents(self):
-        update_residents.Update_residents()
+        update_residents.Update_residents(self)
 #=============================update module for admin===========================#    
     def Update_Admins(self):
-        update_admins.Update_admins()
+        update_admins.Update_admins(self)
