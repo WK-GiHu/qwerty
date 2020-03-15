@@ -4,7 +4,7 @@ from tkinter import messagebox
 import time
 from PIL import Image, ImageTk
 from datetime import datetime, date
-from FingerprintDevice_v2 import FingerprintThread
+from FingerprintDevice import FingerprintThread
 from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
