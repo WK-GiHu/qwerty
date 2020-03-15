@@ -109,6 +109,8 @@ class Update_residents(Toplevel):
             curItem = self.tree.focus()
             inter_var=self.tree.item(curItem)
             list_values=inter_var['values']
+            print(list_values)
+            
             template_id = event.state
             self.cursor.execute("UPDATE residents_db SET FINGER_TEMPLATE = %s WHERE ID = %s", (template_id, list_values[0]))
             self.db.commit()
@@ -121,7 +123,6 @@ class Update_residents(Toplevel):
             messagebnox.showerror("Notice!", "Fingerprint does not match")
         
     def Update_fingerprint(self):
-        self.update()
         curItem = self.tree.focus()
         inter_var=self.tree.item(curItem)
         list_values=inter_var['values']
@@ -143,11 +144,12 @@ class Update_residents(Toplevel):
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
             
             if list_values[12] != "":
-                template_id = event.state
                 # .delete template ID
                 print('delete_template({})'.format(template_id))
-                self.app.fp.delete_template(template_id)
-               
+                positionNumber = list_values[12]
+                positionNumber = int(positionNumber)
+                self.app.fp.delete_template(positionNumber)
+                
             print('set mode REGISTER')
             # Change or continue to REGISTER
             self.app.fp.set_mode(FingerprintDevice.REGISTER)
