@@ -8,72 +8,6 @@ import datetime
 from FingerprintDevice import FingerprintThread
 from VKeyboard import VKeyboard
 
-class XFingerprintThread(threading.Thread):
-    def __init__(self, app, callback):
-        super().__init__(daemon = True)
-        result = None
-        self.app = app
-        self.app.bind('<<GRANT_ACCESS>>', callback)
-        self.start()
-
-    def run(self):        
-        self.db = pymysql.connect(host = "192.168.1.9",port = 3306, user = "root",passwd = "justin",db= "thesis_main")
-        self.cursor = self.db.cursor()
-        self.db.autocommit(True)
-        try:
-            f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
-
-            if ( f.verifyPassword() == False ):
-                raise ValueError('The given fingerprint sensor password is wrong!')
-
-        except Exception as e:
-            print('The fingerprint sensor could not be initialized!')
-            print('Exception message: ' + str(e))
-        
-        print('Currently used templates: ' + str(f.getTemplateCount()) +'/'+ str(f.getStorageCapacity()))
-
-        while True:
-            retry = 0
-            while True:
-                print('Waiting for finger...')
-                retry+=1
-                try:
-                    while (f.readImage() == False):
-                        print('looping .readImage()')
-                        pass
-                    break
-                except Exception as e:
-                     print('PyFingerprint:{}, try {} of 3'.format(e, retry))
-                     if retry == 3:
-                         raise Exception('PyFingerprint: Failed to read image 3 times, exiting.')
-
-                     # delay 2 seconds before next try
-                     time.sleep(2)
-                
-            ## Converts read image to characteristics and stores it in charbuffer 1
-            f.convertImage(0x01)
-
-            ## Searchs template
-            result = f.searchTemplate()
-
-            positionNumber = result[0]
-            accuracyScore = result[1]
-
-            self.cursor.execute("SELECT * FROM residents_admin WHERE FINGER_TEMPLATE = %s",positionNumber)
-            FingerprintThread.result = self.cursor.fetchone()
-            print (FingerprintThread.result)
-            if FingerprintThread.result:
-                self.app.event_generate('<<GRANT_ACCESS>>', state = 1, when='tail')
-            else:
-                self.cursor.execute("SELECT * FROM residents_db WHERE FINGER_TEMPLATE = %s", positionNumber)
-                FingerprintThread.result = self.cursor.fetchone()
-                print (FingerprintThread.result)
-                if FingerprintThread.result:
-                    self.app.event_generate('<<GRANT_ACCESS>>', state = 2, when='tail')
-                else:
-                    messagebox.showerror("Warning!","Your fingerprint is not yet registered!")
-
-    
 class RFIDThread(threading.Thread):
     def __init__(self, app, callback):
         super().__init__(daemon = True)
@@ -155,7 +89,6 @@ class IdleCounter(threading.Thread):
         elif self._counter > 0 and event.state == 0:
             self._counter = self.timeout
 
-    
 class Kiosk(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -190,7 +123,7 @@ class Kiosk(tk.Tk):
         self.imglabel = Label(self, image = self.img_background).place(x=0,y=0)
         self.img2 = ImageTk.PhotoImage(Image.open("rosario_logo.png"))
         
-        FingerprintThread(self)
+        self.fp = FingerprintThread(self)
         self.bind('<<FINGERPRINT>>', self.on_fingerprint)
         
         RFIDThread(self, callback = self.on_grant_access)
@@ -226,3 +159,65 @@ class Kiosk(tk.Tk):
                 self.on_grant_access(event)
             else:
                 messagebox.showerror("Warning!","Your fingerprint is not yet registered!") 
+
+    def on_timeout(self, event):
+        SplashScreen(self)
+                  
+    def on_grant_access(self, event):
+        print('Kiosk.on_grant_access()')
+        if event.state <10:
+            self.details = event.result
+            self.firstn = self.details[3]
+            self.middlen = self.details[2]
+            self.lastn = self.details[1]
+            self.SEX = self.details[4]
+            self.dob = self.details[5]
+            self.civils = self.details[6]
+            self.year_resides = self.details[7]
+            self.address = self.details[8]
+            self.pob = self.details[9]
+            self.cn = self.details[10]
+            self.sq1 = self.details[11]
+            self.ans = self.details[12]
+            self.image = self.details[13]
+            self.rf = self.details [16]
+            self.age = self.calculate_age(self.dob)
+            print(self.age)
+            print ("Finger Thread")
+            print (self.details)
+            if event.state == 1:
+                self.choose_admin()
+            elif event.state == 2:
+                self.choose_user()            
+        else:
+            self.details = RFIDThread.result
+            self.firstn = self.details[3]
+            self.middlen = self.details[2]
+            self.lastn = self.details[1]
+            self.SEX = self.details[4]
+            self.dob = self.details[5]
+            self.civils = self.details[6]
+            self.year_resides = self.details[7]
+            self.address = self.details[8]
+            self.pob = self.details[9]
+            self.cn = self.details[10]
+            self.sq1 = self.details[11]
+            self.ans = self.details[12]
+            self.image = self.details[13]
+            self.rf = self.details [16]
+            self.age = self.calculate_age(self.dob)
+            print(self.age)
+            print ("RFID Thread")
+            if event.state == 11:
+                if self.sq1 == "":
+                    messagebox.showinfo("Notice!", "Please register your security question first before proceeding")
+                else:
+                    self.security_question()
+            elif event.state == 12:
+                if self.sq1 == "":
+                    messagebox.showinfo("Notice!", "Please register your security question first before proceeding")
+                else:
+                    self.security_question()
+        
+        self.deiconify()
+            
