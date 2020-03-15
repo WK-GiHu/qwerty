@@ -143,12 +143,13 @@ class Update_residents(Toplevel):
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
             
             if list_values[12] != "":
+                template_id = event.state
                 # .delete template ID
                 print('delete_template({})'.format(template_id))
                 self.app.fp.delete_template(template_id)
-                # Change or continue to REGISTER
-            
+               
             print('set mode REGISTER')
+            # Change or continue to REGISTER
             self.app.fp.set_mode(FingerprintDevice.REGISTER)
             
     def on_destroy(self, event):
@@ -182,4 +183,3 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
-
