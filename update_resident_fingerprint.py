@@ -4,12 +4,11 @@ from tkinter import messagebox
 import time
 from PIL import Image, ImageTk
 from datetime import datetime, date
-from FingerprintDevice import FingerprintThread
+import FingerprintDevice
 from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import pymysql
-
 class Update_residents(Toplevel):
     def __init__(self, app):
         super().__init__(app)
@@ -142,10 +141,7 @@ class Update_residents(Toplevel):
             
             self.Label_update = Label(self.update_finger_frame, image = self.img_update_background_finger_resident, width = self.ws, height = self.hs)
             self.Label_update.grid(row = 0, column = 0, sticky = "nesw")
-            #if the list_valuesp[12] has a value means he cannot add another finger to the system.
-            #to avoid registration of two fingers the system will detect if there's already a registered finger
-            #if there's a template number in the database it's recognized as registered.
-            #so in order for the user. to update his fingerprint, the system will delete the existing and will replace a new one. since the value in fingerprint memory and database is not actually related and the template is only used as a reference to get the details of a user.
+            
             if list_values[12] != "":
                 # .delete template ID
                 print('delete_template({})'.format(template_id))
@@ -186,3 +182,4 @@ class Update_residents(Toplevel):
         self.fetch = self.cursor.fetchall()
         for data in self.fetch:
             self.tree.insert('', 'end', values=(data))
+
