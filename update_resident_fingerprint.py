@@ -13,7 +13,9 @@ import pymysql
 class Update_residents(Toplevel):
     def __init__(self, app):
         super().__init__()
-            
+        
+        self.app = app
+        
         self.attributes("-fullscreen", True)
         self.db = pymysql.connect(host = "192.168.1.9",port = 3306, user = "root",passwd = "justin",db= "thesis_db")
 
@@ -103,11 +105,16 @@ class Update_residents(Toplevel):
         print('on_fingerprint()  template_id={}'.format(event.state)) 
         if event.state >= 0:
             template_id = event.state
+            self.cursor.execute("UPDATE residents_db SET FINGER_TEMPLATE = %s WHERE ID = %s", (template_id, list_values[0]))
+            self.db.commit()
+            messagebox.showinfo("Success", "Fingerprint successfully updated", parent = self)
+            self.update_finger_frame.destroy()
+            self.treeview_frame_residents.pack(expand = 1, fill = "both")
         elif event.state ==-1:
             messagebox.showerror("Notice!", "Fingerprint already registered")
         elif event.state ==-2:
             messagebnox.showerror("Notice!", "Fingerprint does not match")
-
+        
     def Update_fingerprint(self):
         self.update()
         curItem = self.tree.focus()
@@ -137,17 +144,17 @@ class Update_residents(Toplevel):
         inter_var=self.tree.item(curItem)
         list_values=inter_var['values']
         print(list_values)# checks the value of a dictionary
-        if is_registered_template:
+        if list_values[15] != "":
             print('delete_template({})'.format(template_id))
             fp.delete_template(template_id)
-        
-        print('set mode REGISTER')
-        fp.set_mode(REGISTER)
-        
+        else:
+            print('set mode REGISTER')
+            fp.set_mode(REGISTER)
+            
     def on_destroy(self, event):
         print('set mode SEARCH')
         self.app.fp.set_mode(FingerprintDevice.SEARCH)
-    
+        
     def search_data(self):
         searching = str(self.search_bar.get())
         
@@ -176,4 +183,5 @@ class Update_residents(Toplevel):
 
 if __name__== "__main__":
     Update_residents().mainloop()
+    
     
